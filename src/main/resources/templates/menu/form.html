@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Producto - RestoGestión</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body class="bg-light py-5">
+    <div class="container col-md-6 col-lg-5 bg-white p-4 rounded shadow-sm">
+        <h3 class="mb-3" th:text="${producto.id == null ? 'Registrar Nuevo Producto' : 'Editar Producto'}">Formulario de Producto</h3>
+        <hr class="mb-4">
+        
+        <form th:action="@{/menu/guardar}" th:object="${producto}" method="post">
+            <input type="hidden" th:field="*{id}">
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Nombre del Producto / Platillo</label>
+                <input type="text" th:field="*{nombre}" class="form-control" required placeholder="Ej. Lomo Saltado">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Precio Unitario (S/)</label>
+                <input type="number" step="0.10" min="0" th:field="*{precio}" class="form-control" required placeholder="32.00">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Stock Inicial de Insumos</label>
+                <input type="number" min="0" th:field="*{stock}" class="form-control" required placeholder="20">
+            </div>
+
+            <div class="d-flex justify-content-between pt-3">
+                <a th:href="@{/menu}" class="btn btn-secondary"><i class="bi bi-arrow-left me-1"></i> Cancelar</a>
+                <button type="submit" class="btn btn-success"><i class="bi bi-check-lg me-1"></i> Guardar Producto</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
