@@ -11,6 +11,6 @@ import java.util.List;
 public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
     // Consulta para listar productos con poco stock (menor o igual a 5 unidades)
-    @Query("SELECT p FROM Producto p WHERE p.stock <= 5")
+    @Query("SELECT p FROM Producto p WHERE p.stockActual <= 5")
     List<Producto> findProductosStockBajo();
 }
