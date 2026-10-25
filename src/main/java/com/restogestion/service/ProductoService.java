@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -35,9 +36,13 @@ public class ProductoService {
     @Transactional
     public void actualizarStock(Long idProducto, Integer cantidad) {
         Producto producto = obtenerPorId(idProducto);
-        if (producto != null && producto.getStock() != null) {
-            int nuevoStock = producto.getStock() - cantidad;
-            producto.setStock(Math.max(nuevoStock, 0));
+        if (producto != null && producto.getStockActual() != null) {
+            BigDecimal restar = BigDecimal.valueOf(cantidad);
+            BigDecimal nuevoStock = producto.getStockActual().subtract(restar);
+            if (nuevoStock.compareTo(BigDecimal.ZERO) < 0) {
+                nuevoStock = BigDecimal.ZERO;
+            }
+            producto.setStockActual(nuevoStock);
             productoRepository.save(producto);
         }
     }
