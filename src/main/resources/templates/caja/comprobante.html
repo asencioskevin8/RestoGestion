@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{caja/fragments :: head('Comprobante')}"></head>
+<body>
+<div class="app">
+  <aside th:replace="~{caja/fragments :: sidebar('panel')}"></aside>
+  <div class="workspace">
+    <header class="topbar">
+      <div class="breadcrumb">Caja <span style="padding:0 7px;color:#b2bbb5">/</span> <strong>Comprobante</strong></div>
+    </header>
+    <main>
+      <div class="page-head">
+        <div>
+          <div class="eyebrow">Cobro registrado</div>
+          <h1>Comprobante emitido</h1>
+          <p class="subhead">La mesa pasó a estado Limpieza.</p>
+        </div>
+      </div>
+
+      <div th:replace="~{caja/fragments :: alertas}"></div>
+
+      <article class="comprobante">
+        <h2>RestoGestión</h2>
+        <div class="centro">Sistema Integral de Gestión para Restaurantes</div>
+        <div class="tipo" th:text="${c.tipoComprobante == 'FACTURA'} ? 'FACTURA ELECTRÓNICA' : 'BOLETA DE VENTA ELECTRÓNICA'">BOLETA</div>
+        <div class="tipo" th:text="${c.serie} + '-' + ${#numbers.formatInteger(c.numero, 6, 'NONE')}">B001-000001</div>
+        <hr>
+        <div class="resumen-row"><span>Fecha de emisión</span><span th:text="${#temporals.format(c.fechaEmision, 'dd/MM/yyyy HH:mm')}">01/01/2026</span></div>
+        <div class="resumen-row"><span>Mesa</span><span th:text="${c.pedido.mesa != null} ? ${c.pedido.mesa.numeroMesa} : 'Barra'">M01</span></div>
+        <div class="resumen-row"><span>Pedido</span><span th:text="'#' + ${c.pedido.idPedido}">#1</span></div>
+        <div class="resumen-row"><span>Método de pago</span><span th:text="${c.metodoPago.nombreMetodo}">EFECTIVO</span></div>
+        <hr>
+        <div th:each="d : ${c.pedido.detalles}" class="resumen-row">
+          <span th:text="${#numbers.formatDecimal(d.cantidad, 1, 0)} + ' x ' + ${d.producto.nombreProducto}">1 x Producto</span>
+          <span th:text="${#numbers.formatDecimal(d.subtotal, 1, 'COMMA', 2, 'POINT')}">0.00</span>
+        </div>
+        <hr>
+        <div class="resumen-row"><span>Op. gravada</span><span th:text="'S/ ' + ${#numbers.formatDecimal(c.subtotal, 1, 'COMMA', 2, 'POINT')}">S/ 0.00</span></div>
+        <div class="resumen-row"><span>IGV (18%)</span><span th:text="'S/ ' + ${#numbers.formatDecimal(c.igv, 1, 'COMMA', 2, 'POINT')}">S/ 0.00</span></div>
+        <div class="resumen-row total"><span>IMPORTE TOTAL</span><span th:text="'S/ ' + ${#numbers.formatDecimal(c.importeTotal, 1, 'COMMA', 2, 'POINT')}">S/ 0.00</span></div>
+        <div class="resumen-row"><span>Monto recibido</span><span th:text="'S/ ' + ${#numbers.formatDecimal(c.montoRecibido, 1, 'COMMA', 2, 'POINT')}">S/ 0.00</span></div>
+        <div class="resumen-row"><span>Vuelto</span><span th:text="'S/ ' + ${#numbers.formatDecimal(c.vueltoEntregado, 1, 'COMMA', 2, 'POINT')}">S/ 0.00</span></div>
+        <hr>
+        <div class="centro">Gracias por su visita</div>
+      </article>
+
+      <div class="acciones">
+        <button class="button" onclick="window.print()"><i class="bi bi-printer"></i> Imprimir</button>
+        <a class="button primary link-button" th:href="@{/caja}">Volver a caja</a>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{caja/fragments :: head('Panel de caja')}"></head>
+<body>
+<div class="app">
+  <aside th:replace="~{caja/fragments :: sidebar('panel')}"></aside>
+  <div class="workspace">
+    <header class="topbar">
+      <div class="breadcrumb">Caja <span style="padding:0 7px;color:#b2bbb5">/</span> <strong>Panel</strong></div>
+      <div class="top-actions">
+        <div class="profile">
+          <div class="avatar"><i class="bi bi-cash-stack"></i></div>
+          <div><div class="profile-name">Turno de servicio</div><div class="profile-role">Cajero</div></div>
+        </div>
+      </div>
+    </header>
+    <main>
+      <div class="page-head">
+        <div>
+          <div class="eyebrow">Facturación, cobro y caja</div>
+          <h1>Panel de caja</h1>
+          <p class="subhead">Apertura de caja, cobro de cuentas y emisión de comprobantes.</p>
+        </div>
+        <a class="button primary link-button" th:if="${sesion != null}" th:href="@{/caja/cierre}"><i class="bi bi-calculator"></i> Arqueo / Cierre de caja</a>
+      </div>
+
+      <div th:replace="~{caja/fragments :: alertas}"></div>
+
+      <!-- RF-04: Apertura de caja -->
+      <section class="panel" th:if="${sesion == null}" style="margin-bottom:20px;">
+        <div class="panel-head"><span class="panel-title">Caja cerrada</span><span class="badge gold">Sin sesión activa</span></div>
+        <div class="panel-body">
+          <p class="subhead" style="margin:0 0 14px;">Registra el fondo inicial para abrir la sesión de caja y poder cobrar.</p>
+          <form th:action="@{/caja/abrir}" method="post" class="form-inline">
+            <div class="modal-field">
+              <label for="montoInicial">Monto inicial en caja (S/)</label>
+              <input type="number" id="montoInicial" name="montoInicial" step="0.01" min="0" value="200.00" required>
+            </div>
+            <button type="submit" class="button primary"><i class="bi bi-unlock"></i> Abrir caja</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="metrics" th:if="${sesion != null}">
+        <article class="metric">
+          <div>
+            <div class="metric-label">Total recaudado</div>
+            <div class="metric-value" th:text="'S/ ' + ${#numbers.formatDecimal(resumen.totalVentas(), 1, 'COMMA', 2, 'POINT')}">S/ 0.00</div>
+            <div class="metric-note" th:text="${resumen.transacciones()} + ' comprobantes emitidos'">0 comprobantes</div>
+          </div>
+          <span class="metric-icon"><i class="bi bi-wallet2"></i></span>
+        </article>
+        <article class="metric">
+          <div>
+            <div class="metric-label">Efectivo</div>
+            <div class="metric-value" th:text="'S/ ' + ${#numbers.formatDecimal(resumen.efectivo(), 1, 'COMMA', 2, 'POINT')}">S/ 0.00</div>
+            <div class="metric-note" th:text="'Esperado en gaveta: S/ ' + ${#numbers.formatDecimal(resumen.efectivoEsperado(), 1, 'COMMA', 2, 'POINT')}">Conteo para arqueo</div>
+          </div>
+          <span class="metric-icon"><i class="bi bi-cash"></i></span>
+        </article>
+        <article class="metric">
+          <div>
+            <div class="metric-label">Tarjeta</div>
+            <div class="metric-value" th:text="'S/ ' + ${#numbers.formatDecimal(resumen.tarjeta(), 1, 'COMMA', 2, 'POINT')}">S/ 0.00</div>
+            <div class="metric-note">POS Débito/Crédito</div>
+          </div>
+          <span class="metric-icon"><i class="bi bi-credit-card"></i></span>
+        </article>
+        <article class="metric">
+          <div>
+            <div class="metric-label">Yape y Plin</div>
+            <div class="metric-value" th:text="'S/ ' + ${#numbers.formatDecimal(resumen.yape().add(resumen.plin()), 1, 'COMMA', 2, 'POINT')}">S/ 0.00</div>
+            <div class="metric-note" th:text="'Yape S/ ' + ${#numbers.formatDecimal(resumen.yape(), 1, 'COMMA', 2, 'POINT')} + ' · Plin S/ ' + ${#numbers.formatDecimal(resumen.plin(), 1, 'COMMA', 2, 'POINT')}">Billeteras</div>
+          </div>
+          <span class="metric-icon"><i class="bi bi-phone"></i></span>
+        </article>
+      </section>
+
+      <!-- RF-11: Mesas por cobrar -->
+      <section class="section">
+        <div class="section-head">
+          <h2>Mesas por cobrar</h2>
+          <span class="section-note" th:text="${#lists.size(mesas)} + ' mesas con cuenta abierta'">0 mesas</span>
+        </div>
+        <div class="table-grid">
+          <article class="table-card" th:each="m : ${mesas}">
+            <div class="table-card-top">
+              <div>
+                <div class="table-caption">MESA</div>
+                <div class="table-number" th:text="${m.mesa().numeroMesa}">M01</div>
+              </div>
+              <span class="badge" th:classappend="${m.mesa().estado == 'CUENTA'} ? 'blue' : 'red'" th:text="${m.mesa().estado == 'CUENTA'} ? 'En cuenta' : 'Ocupada'">Ocupada</span>
+            </div>
+            <div class="table-info">
+              <span th:text="'Comensales: ' + ${m.mesa().comensalesActuales} + '/' + ${m.mesa().capacidad}">Comensales</span>
+              <strong th:if="${m.pedido() != null}" th:text="'S/ ' + ${#numbers.formatDecimal(m.pedido().totalCalculado, 1, 'COMMA', 2, 'POINT')}">S/ 0.00</strong>
+              <span th:if="${m.pedido() == null}">Sin pedido</span>
+            </div>
+            <a class="button primary link-button" th:if="${m.pedido() != null}" th:href="@{/caja/cobrar/{n}(n=${m.mesa().numeroMesa})}"><i class="bi bi-credit-card"></i> Cobrar cuenta</a>
+            <button class="button" th:if="${m.pedido() == null}" disabled>Sin pedido por cobrar</button>
+          </article>
+        </div>
+        <div class="empty" th:if="${#lists.isEmpty(mesas)}">No hay mesas con cuenta pendiente de cobro.</div>
+      </section>
+
+      <!-- Comprobantes de la sesión -->
+      <section class="section" th:if="${sesion != null}">
+        <div class="section-head"><h2>Comprobantes de la sesión actual</h2></div>
+        <div class="panel">
+          <div style="overflow:auto">
+            <table class="inventory-table">
+              <thead>
+                <tr><th>Comprobante</th><th>Mesa</th><th>Método</th><th class="num">Total</th><th>Hora</th><th></th></tr>
+              </thead>
+              <tbody>
+                <tr th:each="c : ${comprobantes}">
+                  <td><strong th:text="${c.serie} + '-' + ${#numbers.formatInteger(c.numero, 6)}">B001-000001</strong>
+                      <span class="badge" th:classappend="${c.tipoComprobante == 'FACTURA'} ? 'blue' : 'green'" th:text="${c.tipoComprobante}">BOLETA</span></td>
+                  <td th:text="${c.pedido.mesa != null} ? ${c.pedido.mesa.numeroMesa} : 'Barra'">M01</td>
+                  <td th:text="${c.metodoPago.nombreMetodo}">EFECTIVO</td>
+                  <td class="num" th:text="'S/ ' + ${#numbers.formatDecimal(c.importeTotal, 1, 'COMMA', 2, 'POINT')}">S/ 0.00</td>
+                  <td th:text="${#temporals.format(c.fechaEmision, 'HH:mm')}">12:00</td>
+                  <td><a class="button link-button" th:href="@{/caja/comprobante/{id}(id=${c.idComprobante})}">Ver</a></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(comprobantes)}"><td colspan="6" class="empty">Aún no se emitieron comprobantes en esta sesión.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+</body>
+</html>
