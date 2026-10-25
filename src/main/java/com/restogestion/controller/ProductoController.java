@@ -1,7 +1,6 @@
 package com.restogestion.controller;
 
 import com.restogestion.entity.Producto;
-import com.restogestion.service.CategoriaService;
 import com.restogestion.service.ProductoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -15,9 +14,6 @@ public class ProductoController {
     @Autowired
     private ProductoService productoService;
 
-    @Autowired(required = false)
-    private CategoriaService categoriaService;
-
     @GetMapping
     public String listarMenu(Model model) {
         model.addAttribute("productos", productoService.listarTodos());
@@ -27,9 +23,6 @@ public class ProductoController {
     @GetMapping("/nuevo")
     public String mostrarFormularioNuevo(Model model) {
         model.addAttribute("producto", new Producto());
-        if (categoriaService != null) {
-            model.addAttribute("categorias", categoriaService.listarTodas());
-        }
         return "menu/form";
     }
 
@@ -40,9 +33,6 @@ public class ProductoController {
             return "redirect:/menu";
         }
         model.addAttribute("producto", producto);
-        if (categoriaService != null) {
-            model.addAttribute("categorias", categoriaService.listarTodas());
-        }
         return "menu/form";
     }
 
