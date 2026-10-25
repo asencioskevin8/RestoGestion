@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Salón y Mapa de Mesas | RestoGestión</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" th:href="@{/css/restogestion.css}" href="/css/restogestion.css">
+  <link rel="stylesheet" th:href="@{/css/mesas.css}" href="/css/mesas.css">
+</head>
+<body>
+  <header class="topbar">
+    <a th:href="@{/}" class="brand-inline">
+      <span class="brand-mark"><i class="bi bi-shop"></i></span>
+      <span>
+        <span class="brand-name" style="display:block">RestoGestión</span>
+        <span class="brand-sub" style="display:block">Panel de operaciones</span>
+      </span>
+    </a>
+    <nav class="mesas-nav" aria-label="Navegación principal">
+      <a th:href="@{/mesas}" class="active"><i class="bi bi-grid-3x3-gap me-1"></i> Salón y mesas</a>
+      <a th:href="@{/menu}"><i class="bi bi-box-seam me-1"></i> Carta e inventario</a>
+      <a th:href="@{/}"><i class="bi bi-house-door me-1"></i> Panel</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">Salón · RF-05</div>
+        <h1>Mapa de mesas</h1>
+        <p class="subhead">Estado del salón, comensales por mesa y apertura de mesas en tiempo real.</p>
+      </div>
+      <a th:href="@{/mesas/nueva}" class="button primary"><i class="bi bi-plus-circle"></i> Nueva mesa</a>
+    </div>
+
+    <div class="aviso ok" th:if="${mensaje}" role="status">
+      <i class="bi bi-check-circle"></i> <span th:text="${mensaje}">Operación realizada.</span>
+    </div>
+    <div class="aviso error" th:if="${error}" role="alert">
+      <i class="bi bi-exclamation-triangle"></i> <span th:text="${error}">Ocurrió un error.</span>
+    </div>
+
+    <section class="metrics" aria-label="Resumen del salón">
+      <article class="metric">
+        <div>
+          <div class="metric-label">Mesas registradas</div>
+          <div class="metric-value" th:text="${resumen.totalMesas()}">8</div>
+          <div class="metric-note"><span th:text="${conteo['LIBRE']}">3</span> libres ahora</div>
+        </div>
+        <span class="metric-icon"><i class="bi bi-grid"></i></span>
+      </article>
+      <article class="metric">
+        <div>
+          <div class="metric-label">Capacidad total</div>
+          <div class="metric-value" th:text="${resumen.capacidadTotal()}">34</div>
+          <div class="metric-note">comensales en el salón</div>
+        </div>
+        <span class="metric-icon"><i class="bi bi-people"></i></span>
+      </article>
+      <article class="metric">
+        <div>
+          <div class="metric-label">Comensales ahora</div>
+          <div class="metric-value" th:text="${resumen.comensalesActuales()}">9</div>
+          <div class="metric-note">sentados en mesas abiertas</div>
+        </div>
+        <span class="metric-icon"><i class="bi bi-person-check"></i></span>
+      </article>
+      <article class="metric">
+        <div>
+          <div class="metric-label">Ocupación</div>
+          <div class="metric-value"><span th:text="${resumen.ocupacionPorcentaje()}">38</span>%</div>
+          <div class="metric-note">mesas ocupadas o en cuenta</div>
+        </div>
+        <span class="metric-icon"><i class="bi bi-pie-chart"></i></span>
+      </article>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>Estado de las mesas</h2>
+        <span class="section-note"><span class="online-dot" style="display:inline-block;margin-right:4px;"></span> Sincronizado con MySQL</span>
+      </div>
+
+      <nav class="filtros" aria-label="Filtrar por estado">
+        <span class="toolbar-label">Mostrar:</span>
+        <a th:href="@{/mesas}" class="chip" th:classappend="${filtro == null} ? 'active'">
+          Todas <span class="chip-count" th:text="${resumen.totalMesas()}">8</span>
+        </a>
+        <a th:each="et : ${etiquetas}" th:href="@{/mesas(estado=${et.key})}" class="chip"
+           th:classappend="${filtro == et.key} ? 'active'">
+          <span th:text="${et.value}">Libre</span>
+          <span class="chip-count" th:text="${conteo[et.key]}">0</span>
+        </a>
+      </nav>
+
+      <div class="table-grid">
+        <article class="table-card mesa-card" th:each="m : ${mesas}"
+                 th:classappend="${'estado-' + #strings.toLowerCase(m.estado)}">
+          <div class="table-card-top">
+            <div>
+              <div class="table-caption">MESA</div>
+              <div class="table-number" th:text="${m.numeroMesa}">M01</div>
+            </div>
+            <span class="estado-badge" th:classappend="${'estado-' + #strings.toLowerCase(m.estado)}"
+                  th:text="${etiquetas[m.estado]}">Libre</span>
+          </div>
+
+          <div class="asientos" th:attr="aria-label=|${m.comensalesActuales} de ${m.capacidad} asientos ocupados|">
+            <span class="asiento" th:each="i : ${#numbers.sequence(1, m.capacidad)}"
+                  th:classappend="${i <= m.comensalesActuales} ? 'ocupado'"></span>
+          </div>
+          <div class="mesa-datos">
+            <span>Comensales: <strong th:text="${m.comensalesActuales} + '/' + ${m.capacidad}">0/4</strong></span>
+            <span th:if="${m.fechaApertura != null}">Desde <span th:text="${#temporals.format(m.fechaApertura, 'HH:mm')}">20:15</span></span>
+            <span th:if="${m.fechaApertura == null}" th:text="${m.estado == 'LIMPIEZA'} ? 'Por limpiar' : 'Disponible'">Disponible</span>
+          </div>
+
+          <div class="mesa-acciones" th:switch="${m.estado}">
+
+            <!-- LIBRE: abrir mesa o reservar -->
+            <div th:case="'LIBRE'">
+              <form th:action="@{/mesas/{id}/abrir(id=${m.idMesa})}" method="post" class="accion-fila">
+                <input type="hidden" name="filtro" th:value="${filtro}">
+                <input type="number" name="comensales" min="1" th:max="${m.capacidad}" value="1" required aria-label="Comensales">
+                <button type="submit" class="button primary grow"><i class="bi bi-door-open"></i> Abrir mesa</button>
+              </form>
+              <form th:action="@{/mesas/{id}/estado(id=${m.idMesa})}" method="post" class="secundaria">
+                <input type="hidden" name="filtro" th:value="${filtro}">
+                <input type="hidden" name="estado" value="RESERVADA">
+                <button type="submit" class="button"><i class="bi bi-bookmark"></i> Reservar</button>
+              </form>
+            </div>
+
+            <!-- RESERVADA: recibir clientes o liberar -->
+            <div th:case="'RESERVADA'">
+              <form th:action="@{/mesas/{id}/abrir(id=${m.idMesa})}" method="post" class="accion-fila">
+                <input type="hidden" name="filtro" th:value="${filtro}">
+                <input type="number" name="comensales" min="1" th:max="${m.capacidad}" value="1" required aria-label="Comensales">
+                <button type="submit" class="button primary grow"><i class="bi bi-door-open"></i> Recibir clientes</button>
+              </form>
+              <form th:action="@{/mesas/{id}/estado(id=${m.idMesa})}" method="post" class="secundaria">
+                <input type="hidden" name="filtro" th:value="${filtro}">
+                <input type="hidden" name="estado" value="LIBRE">
+                <button type="submit" class="button"><i class="bi bi-x-circle"></i> Cancelar reserva</button>
+              </form>
+            </div>
+
+            <!-- OCUPADA: ajustar comensales o pedir cuenta -->
+            <div th:case="'OCUPADA'">
+              <form th:action="@{/mesas/{id}/comensales(id=${m.idMesa})}" method="post" class="accion-fila">
+                <input type="hidden" name="filtro" th:value="${filtro}">
+                <input type="number" name="comensales" min="1" th:max="${m.capacidad}" th:value="${m.comensalesActuales}" required aria-label="Comensales">
+                <button type="submit" class="button grow"><i class="bi bi-people"></i> Actualizar</button>
+              </form>
+              <form th:action="@{/mesas/{id}/estado(id=${m.idMesa})}" method="post" class="secundaria">
+                <input type="hidden" name="filtro" th:value="${filtro}">
+                <input type="hidden" name="estado" value="CUENTA">
+                <button type="submit" class="button primary"><i class="bi bi-receipt"></i> Pedir cuenta</button>
+              </form>
+            </div>
+
+            <!-- CUENTA: pendiente de cobro en Caja -->
+            <div th:case="'CUENTA'">
+              <div class="nota-estado"><i class="bi bi-wallet2"></i> Cuenta lista: pendiente de cobro en Caja.</div>
+              <form th:action="@{/mesas/{id}/estado(id=${m.idMesa})}" method="post" class="secundaria">
+                <input type="hidden" name="filtro" th:value="${filtro}">
+                <input type="hidden" name="estado" value="OCUPADA">
+                <button type="submit" class="button"><i class="bi bi-arrow-counterclockwise"></i> Reabrir mesa</button>
+              </form>
+            </div>
+
+            <!-- LIMPIEZA: dejar disponible -->
+            <div th:case="'LIMPIEZA'">
+              <form th:action="@{/mesas/{id}/estado(id=${m.idMesa})}" method="post" class="accion-fila">
+                <input type="hidden" name="filtro" th:value="${filtro}">
+                <input type="hidden" name="estado" value="LIBRE">
+                <button type="submit" class="button primary grow"><i class="bi bi-check2-circle"></i> Marcar libre</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="mesa-herramientas">
+            <a th:href="@{/mesas/editar/{id}(id=${m.idMesa})}" class="icon-button" title="Editar mesa" aria-label="Editar mesa">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <form th:if="${m.estado == 'LIBRE'}" th:action="@{/mesas/eliminar/{id}(id=${m.idMesa})}" method="post"
+                  onsubmit="return confirm('¿Seguro que deseas eliminar esta mesa?')">
+              <input type="hidden" name="filtro" th:value="${filtro}">
+              <button type="submit" class="icon-button peligro" title="Eliminar mesa" aria-label="Eliminar mesa">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
+          </div>
+        </article>
+      </div>
+
+      <div class="empty" th:if="${#lists.isEmpty(mesas)}">
+        <i class="bi bi-inbox" style="font-size:30px;opacity:.5;display:block;margin-bottom:6px;"></i>
+        No hay mesas en este estado.
+      </div>
+    </section>
+  </main>
+</body>
+</html>

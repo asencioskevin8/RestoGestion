@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Registro de mesa | RestoGestión</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" th:href="@{/css/restogestion.css}" href="/css/restogestion.css">
+  <link rel="stylesheet" th:href="@{/css/mesas.css}" href="/css/mesas.css">
+</head>
+<body>
+  <header class="topbar">
+    <a th:href="@{/}" class="brand-inline">
+      <span class="brand-mark"><i class="bi bi-shop"></i></span>
+      <span>
+        <span class="brand-name" style="display:block">RestoGestión</span>
+        <span class="brand-sub" style="display:block">Panel de operaciones</span>
+      </span>
+    </a>
+    <nav class="mesas-nav" aria-label="Navegación principal">
+      <a th:href="@{/mesas}" class="active"><i class="bi bi-grid-3x3-gap me-1"></i> Salón y mesas</a>
+      <a th:href="@{/menu}"><i class="bi bi-box-seam me-1"></i> Carta e inventario</a>
+      <a th:href="@{/}"><i class="bi bi-house-door me-1"></i> Panel</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">Salón · RF-05</div>
+        <h1 th:text="${mesa.idMesa == null} ? 'Nueva mesa' : 'Editar mesa'">Nueva mesa</h1>
+        <p class="subhead">Define el número y la capacidad de la mesa. El estado se gestiona desde el mapa del salón.</p>
+      </div>
+      <a th:href="@{/mesas}" class="button"><i class="bi bi-arrow-left"></i> Volver al mapa</a>
+    </div>
+
+    <form th:action="@{/mesas/guardar}" th:object="${mesa}" method="post" class="simple-panel form-panel">
+      <input type="hidden" th:field="*{idMesa}">
+
+      <div class="aviso error" th:if="${#fields.hasGlobalErrors()}" role="alert">
+        <i class="bi bi-exclamation-triangle"></i>
+        <span th:each="err : ${#fields.globalErrors()}" th:text="${err}">Error</span>
+      </div>
+
+      <div class="modal-field">
+        <label for="numeroMesa">Número de mesa</label>
+        <input type="text" id="numeroMesa" th:field="*{numeroMesa}" maxlength="10" placeholder="Ej. M09" required>
+        <small>Código único que se muestra en el mapa y en las comandas.</small>
+        <div class="field-error" th:if="${#fields.hasErrors('numeroMesa')}" th:errors="*{numeroMesa}">Error</div>
+      </div>
+
+      <div class="modal-field">
+        <label for="capacidad">Capacidad (comensales)</label>
+        <input type="number" id="capacidad" th:field="*{capacidad}" min="1" th:max="${capacidadMaxima}" placeholder="Ej. 4" required>
+        <small>Entre 1 y <span th:text="${capacidadMaxima}">20</span> comensales.</small>
+        <div class="field-error" th:if="${#fields.hasErrors('capacidad')}" th:errors="*{capacidad}">Error</div>
+      </div>
+
+      <div class="form-actions">
+        <a th:href="@{/mesas}" class="button">Cancelar</a>
+        <button type="submit" class="button primary"><i class="bi bi-check2-circle"></i> Guardar mesa</button>
+      </div>
+    </form>
+  </main>
+</body>
+</html>
