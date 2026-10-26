@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Monitor de Cocina (KDS) | RestoGestión</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" th:href="@{/css/restogestion.css}" href="/css/restogestion.css">
+  <link rel="stylesheet" th:href="@{/css/mesas.css}" href="/css/mesas.css">
+</head>
+<body>
+  <header class="topbar">
+    <a th:href="@{/}" class="brand-inline">
+      <span class="brand-mark"><i class="bi bi-shop"></i></span>
+      <span>
+        <span class="brand-name" style="display:block">RestoGestión</span>
+        <span class="brand-sub" style="display:block">Panel de operaciones</span>
+      </span>
+    </a>
+    <nav class="mesas-nav" aria-label="Navegación principal">
+      <a th:href="@{/mesas}"><i class="bi bi-grid-3x3-gap me-1"></i> Salón y mesas</a>
+      <a th:href="@{/menu}"><i class="bi bi-box-seam me-1"></i> Carta e inventario</a>
+      <a th:href="@{/cocina}" class="active"><i class="bi bi-display me-1"></i> KDS Cocina</a>
+      <a th:href="@{/}"><i class="bi bi-house-door me-1"></i> Panel</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">Cocina · RF-09 / RF-10</div>
+        <h1>Monitor de Cocina (KDS)</h1>
+        <p class="subhead">Gestión de comandas activas y control de tiempos de preparación en tiempo real.</p>
+      </div>
+      <div class="d-flex gap-2">
+        <span class="badge red py-2 px-3 fs-6" style="font-size:12px;">
+          <i class="bi bi-clock me-1"></i> Pendientes: <span th:text="${totalPendientes}">0</span>
+        </span>
+        <span class="badge gold py-2 px-3 fs-6" style="font-size:12px;">
+          <i class="bi bi-fire me-1"></i> En Preparación: <span th:text="${totalPreparacion}">0</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- AVISOS / MENSAJES FLASH -->
+    <div class="aviso ok" th:if="${mensaje}" role="status">
+      <i class="bi bi-check-circle"></i> <span th:text="${mensaje}">Operación realizada.</span>
+    </div>
+    <div class="aviso error" th:if="${error}" role="alert">
+      <i class="bi bi-exclamation-triangle"></i> <span th:text="${error}">Ocurrió un error.</span>
+    </div>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>Comandas en curso</h2>
+        <span class="section-note"><span class="online-dot" style="display:inline-block;margin-right:4px;"></span> Sincronizado en tiempo real</span>
+      </div>
+
+      <!-- GRID DE TICKETS DE COCINA -->
+      <div class="table-grid">
+        <article class="table-card mesa-card" th:each="pedido : ${comandas}"
+                 th:classappend="${pedido.estadoPedido == 'PENDIENTE'} ? 'estado-ocupada' : 'estado-reservada'">
+          
+          <div class="table-card-top">
+            <div>
+              <div class="table-caption">MESA / ORIGEN</div>
+              <div class="table-number" th:text="${pedido.mesa != null ? pedido.mesa.numeroMesa : pedido.origen}">M01</div>
+            </div>
+            <span class="estado-badge" 
+                  th:classappend="${pedido.estadoPedido == 'PENDIENTE'} ? 'estado-ocupada' : 'estado-reservada'"
+                  th:text="${pedido.estadoPedido}">PENDIENTE</span>
+          </div>
+
+          <div class="mesa-datos mt-2">
+            <span><i class="bi bi-clock me-1"></i> Hora: <strong th:text="${#temporals.format(pedido.fechaHora, 'HH:mm:ss')}">12:30</strong></span>
+            <span><i class="bi bi-person me-1"></i> <span th:text="${pedido.usuarioMesero != null ? pedido.usuarioMesero.nombreCompleto : 'Mesero'}">Mesero</span></span>
+          </div>
+
+          <!-- LISTA DE PLATOS / DETALLES -->
+          <div class="my-3 border-top pt-2" style="font-size: 11.5px;">
+            <div class="fw-bold text-muted mb-1 text-uppercase" style="font-size: 10px;">Ítems solicitados:</div>
+            <ul class="list-unstyled mb-0" style="display: grid; gap: 6px;">
+              <li th:each="det : ${pedido.detalles}" class="d-flex justify-content-between align-items-start border-bottom pb-1">
+                <div>
+                  <span class="badge green" th:text="${det.cantidad}">2</span>
+                  <strong th:text="${det.producto.nombreProducto}">Lomo Saltado</strong>
+                  <div class="text-danger fst-italic" style="font-size: 10px;" th:if="${det.observaciones != null and !det.observaciones.isEmpty()}">
+                    Nota: <span th:text="${det.observaciones}">Sin cebolla</span>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <div class="alert alert-secondary py-1 px-2 small mb-2" th:if="${pedido.observaciones != null and !pedido.observaciones.isEmpty()}" style="font-size: 10.5px;">
+            <strong><i class="bi bi-chat-left-text me-1"></i> Obs:</strong> <span th:text="${pedido.observaciones}"></span>
+          </div>
+
+          <!-- ACCIONES KDS (AVANZAR ESTADO) -->
+          <div class="mesa-acciones">
+            <form th:action="@{/cocina/pedidos/{id}/avanzar(id=${pedido.idPedido})}" method="post">
+              <button type="submit" class="button primary full"
+                      th:classappend="${pedido.estadoPedido == 'PENDIENTE'} ? '' : 'gold'"
+                      style="width: 100%;">
+                <span th:if="${pedido.estadoPedido == 'PENDIENTE'}">
+                  <i class="bi bi-fire me-1"></i> Iniciar preparación
+                </span>
+                <span th:if="${pedido.estadoPedido == 'EN_PREPARACION'}">
+                  <i class="bi bi-check2-all me-1"></i> Marcar como listo
+                </span>
+              </button>
+            </form>
+          </div>
+
+        </article>
+      </div>
+
+      <!-- MENSAJE SI NO HAY COMANDAS -->
+      <div class="empty" th:if="${#lists.isEmpty(comandas)}">
+        <i class="bi bi-check2-circle" style="font-size:30px;color:var(--green);display:block;margin-bottom:6px;"></i>
+        <h3 class="h6 fw-bold mb-1">¡Todo al día en cocina!</h3>
+        <p class="text-muted mb-0" style="font-size: 11px;">No hay comandas pendientes ni en preparación en este momento.</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
