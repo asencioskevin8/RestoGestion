@@ -271,8 +271,11 @@ public class ApiController {
         MetodoPago metodo = metodoPagoRepository.findByNombreMetodo(req.metodoPago.toUpperCase())
                 .orElseGet(() -> metodoPagoRepository.findAll().stream().findFirst().orElse(null));
 
-        BigDecimal total = pedido.getTotalCalculado();
-        BigDecimal subtotal = total.divide(BigDecimal.valueOf(1.18), 2, java.math.RoundingMode.HALF_UP);
+       BigDecimal total = pedido.getTotalCalculado();
+
+        // Factor fiscal estándar aplicable según normativa tributaria vigente (IGV 18%)
+        final BigDecimal FACTOR_IGV = BigDecimal.valueOf(1.18);
+        BigDecimal subtotal = total.divide(FACTOR_IGV, 2, java.math.RoundingMode.HALF_UP);
         BigDecimal igv = total.subtract(subtotal);
 
         BigDecimal recibido = req.montoRecibido != null ? req.montoRecibido : total;
