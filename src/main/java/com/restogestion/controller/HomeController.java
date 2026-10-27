@@ -13,19 +13,23 @@ public class HomeController {
     private final MesaRepository mesaRepository;
     private final ProductoRepository productoRepository;
     private final SesionCajaRepository sesionCajaRepository;
+    private final PedidoRepository pedidoRepository;
 
     public HomeController(MesaRepository mesaRepository,
                           ProductoRepository productoRepository,
-                          SesionCajaRepository sesionCajaRepository) {
+                          SesionCajaRepository sesionCajaRepository,
+                          PedidoRepository pedidoRepository)) {
         this.mesaRepository = mesaRepository;
         this.productoRepository = productoRepository;
         this.sesionCajaRepository = sesionCajaRepository;
+        this.pedidoRepository = pedidoRepository;
     }
 
     @GetMapping("/")
     public String index(Model model) {
         model.addAttribute("totalMesas", mesaRepository.count());
         model.addAttribute("totalProductos", productoRepository.count());
+        model.addAttribute("totalPedidos", pedidoRepository.findByEstadoPedido("PENDIENTE").size());
         model.addAttribute("cajaAbierta", sesionCajaRepository.findFirstByEstadoOrderByFechaAperturaDesc("ABIERTA").isPresent());
         return "index";
     }
