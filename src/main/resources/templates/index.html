@@ -859,6 +859,7 @@
 
     // Navegación de vistas
     function setView(view) {
+      if (view === 'caja') { window.location.href = '/caja'; return; }
       activeView = view;
       document.querySelectorAll('.nav-button').forEach(btn => btn.classList.toggle('active', btn.dataset.view === view));
       const names = { salon:'Salón', comanda:'Comanda', cocina:'Cocina', inventario:'Inventario', caja:'Caja', cliente:'Cliente' };

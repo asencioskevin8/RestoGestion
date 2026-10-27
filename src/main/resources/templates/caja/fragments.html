@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(titulo)">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${titulo} + ' | RestoGestión'">Caja | RestoGestión</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" th:href="@{/css/restogestion.css}">
+  <link rel="stylesheet" th:href="@{/css/caja.css}">
+</head>
+<body>
+  <aside class="sidebar" th:fragment="sidebar(activo)">
+    <a th:href="@{/}" class="brand">
+      <div class="brand-mark"><i class="bi bi-shop"></i></div>
+      <div>
+        <div class="brand-name">RestoGestión</div>
+        <div class="brand-sub">Módulo de caja</div>
+      </div>
+    </a>
+    <div class="side-label">Facturación y caja</div>
+    <nav class="nav" aria-label="Navegación de caja">
+      <a class="nav-button" th:classappend="${activo == 'panel'} ? 'active'" th:href="@{/caja}"><span class="nav-icon"><i class="bi bi-cash-stack"></i></span> Panel de caja</a>
+      <a class="nav-button" th:classappend="${activo == 'cierre'} ? 'active'" th:href="@{/caja/cierre}"><span class="nav-icon"><i class="bi bi-calculator"></i></span> Arqueo y cierre</a>
+      <a class="nav-button" th:classappend="${activo == 'historial'} ? 'active'" th:href="@{/caja/historial}"><span class="nav-icon"><i class="bi bi-clock-history"></i></span> Historial</a>
+      <a class="nav-button" th:href="@{/}"><span class="nav-icon"><i class="bi bi-arrow-left-circle"></i></span> Volver al panel</a>
+    </nav>
+    <div class="side-bottom">
+      <div class="side-status"><span class="online-dot"></span> Spring Boot + MySQL</div>
+      <div style="margin-top:8px">Universidad Tecnológica del Perú · 2026</div>
+    </div>
+  </aside>
+
+  <div th:fragment="alertas">
+    <div class="alerta exito" th:if="${exito}"><i class="bi bi-check-circle"></i> <span th:text="${exito}"></span></div>
+    <div class="alerta error" th:if="${error}"><i class="bi bi-exclamation-triangle"></i> <span th:text="${error}"></span></div>
+  </div>
+</body>
+</html>
