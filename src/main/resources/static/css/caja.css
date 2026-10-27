@@ -1,0 +1,29 @@
+/* Estilos del módulo de Caja (complementa restogestion.css) */
+.alerta { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; padding: 11px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; }
+.alerta.exito { color: var(--green); background: var(--green-soft); border: 1px solid #cfe3d6; }
+.alerta.error { color: var(--red); background: var(--red-soft); border: 1px solid #efd3ce; }
+.form-inline { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+.form-inline .modal-field { margin: 0; min-width: 200px; }
+.form-card { max-width: 520px; }
+.form-card .modal-field input, .form-card .modal-field select { padding: 9px 11px; }
+.resumen-box { margin-bottom: 14px; padding: 12px; border-radius: 8px; background: var(--canvas); font-size: 12px; }
+.resumen-row { display: flex; justify-content: space-between; margin-top: 4px; }
+.resumen-row.total { margin-top: 8px; padding-top: 7px; border-top: 1px solid var(--line); color: var(--green); font-size: 15px; font-weight: 700; }
+.feedback { margin-top: 6px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.feedback.ok { color: var(--green); }
+.feedback.mal { color: var(--red); }
+.cobro-grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 15px; align-items: start; }
+.inventory-table td.num, .inventory-table th.num { text-align: right; }
+.link-button { text-decoration: none; }
+.comprobante { max-width: 420px; margin: 0 auto; padding: 26px 24px; border: 1px dashed #b7c4bb; border-radius: 10px; background: #fff; box-shadow: var(--shadow); font-size: 12px; }
+.comprobante h2 { margin: 0; text-align: center; font-size: 16px; }
+.comprobante .centro { text-align: center; color: var(--muted); font-size: 11px; }
+.comprobante .tipo { margin: 14px 0 4px; text-align: center; font-size: 13px; font-weight: 700; }
+.comprobante hr { border: 0; border-top: 1px dashed #c7d1ca; margin: 12px 0; }
+.acciones { display: flex; justify-content: center; gap: 10px; margin-top: 18px; }
+@media (max-width: 900px) { .cobro-grid { grid-template-columns: 1fr; } }
+@media print {
+  .sidebar, .topbar, .acciones, .page-head, .alerta { display: none !important; }
+  .app { display: block; }
+  .comprobante { border: 0; box-shadow: none; }
+}

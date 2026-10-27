@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{caja/fragments :: head('Cobro de mesa')}"></head>
+<body>
+<div class="app">
+  <aside th:replace="~{caja/fragments :: sidebar('panel')}"></aside>
+  <div class="workspace">
+    <header class="topbar">
+      <div class="breadcrumb">Caja <span style="padding:0 7px;color:#b2bbb5">/</span> <strong>Cobro</strong></div>
+    </header>
+    <main>
+      <div class="page-head">
+        <div>
+          <div class="eyebrow" th:text="'Mesa ' + ${cuenta.mesa().numeroMesa}">Mesa</div>
+          <h1>Cobro de la cuenta</h1>
+          <p class="subhead">Selecciona el comprobante y el método de pago.</p>
+        </div>
+        <a class="button link-button" th:href="@{/caja}">← Volver a caja</a>
+      </div>
+
+      <div th:replace="~{caja/fragments :: alertas}"></div>
+      <div class="alerta error" th:if="${!sesionAbierta}"><i class="bi bi-exclamation-triangle"></i> No hay una sesión de caja abierta. Abre la caja en el panel antes de cobrar.</div>
+
+      <div class="cobro-grid">
+        <section class="panel">
+          <div class="panel-head"><span class="panel-title">Detalle del pedido</span>
+            <span class="badge green" th:text="${#lists.size(cuenta.pedidos())} + ' pedido(s)'">Pedidos</span></div>
+          <div style="overflow:auto">
+            <table class="inventory-table">
+              <thead><tr><th>Producto</th><th class="num">Cant.</th><th class="num">P. unit.</th><th class="num">Subtotal</th></tr></thead>
+              <tbody>
+                <tr th:each="i : ${cuenta.items()}">
+                  <td><strong th:text="${i.producto()}">Producto</strong>
+                      <div th:if="${i.observaciones()}" class="section-note" th:text="${i.observaciones()}"></div></td>
+                  <td class="num" th:text="${#numbers.formatDecimal(i.cantidad(), 1, 0)}">1</td>
+                  <td class="num" th:text="${#numbers.formatDecimal(i.precioUnitario(), 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                  <td class="num" th:text="${#numbers.formatDecimal(i.subtotal(), 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <aside class="panel">
+          <div class="panel-head"><span class="panel-title">Cobro · Mesa <span th:text="${cuenta.mesa().numeroMesa}"></span></span></div>
+          <div class="panel-body">
+            <div class="resumen-box">
+              <div class="resumen-row"><span>Subtotal (Op. gravada)</span><strong th:text="'S/ ' + ${#numbers.formatDecimal(cuenta.subtotal(), 1, 'COMMA', 2, 'POINT')}">S/ 0.00</strong></div>
+              <div class="resumen-row"><span>IGV (18%)</span><strong th:text="'S/ ' + ${#numbers.formatDecimal(cuenta.igv(), 1, 'COMMA', 2, 'POINT')}">S/ 0.00</strong></div>
+              <div class="resumen-row total"><span>TOTAL A COBRAR</span><strong th:text="'S/ ' + ${#numbers.formatDecimal(cuenta.total(), 1, 'COMMA', 2, 'POINT')}">S/ 0.00</strong></div>
+            </div>
+
+            <form th:action="@{/caja/cobrar}" method="post">
+              <input type="hidden" name="numeroMesa" th:value="${cuenta.mesa().numeroMesa}">
+              <div class="modal-field">
+                <label for="tipoComprobante">Tipo de comprobante</label>
+                <select id="tipoComprobante" name="tipoComprobante">
+                  <option value="BOLETA">Boleta de venta electrónica (B001)</option>
+                  <option value="FACTURA">Factura electrónica (F001)</option>
+                </select>
+              </div>
+              <div class="modal-field">
+                <label for="metodoPago">Método de pago</label>
+                <select id="metodoPago" name="metodoPago">
+                  <option th:each="mp : ${metodos}" th:value="${mp.nombreMetodo}"
+                          th:attr="data-vuelto=${mp.requiereVuelto}"
+                          th:text="${mp.nombreMetodo}">EFECTIVO</option>
+                </select>
+              </div>
+              <div class="modal-field" id="seccionEfectivo">
+                <label for="montoRecibido">Monto recibido (S/)</label>
+                <input type="number" id="montoRecibido" name="montoRecibido" step="0.01" min="0" placeholder="0.00">
+                <div id="vuelto" class="feedback">Vuelto: S/ 0.00</div>
+              </div>
+              <button type="submit" id="btnCobrar" class="button primary full" th:disabled="${!sesionAbierta}">
+                <i class="bi bi-check2-circle"></i> Confirmar cobro
+              </button>
+            </form>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+</div>
+<script th:inline="javascript">
+  const total = /*[[${cuenta.total()}]]*/ 0;
+  const metodo = document.getElementById('metodoPago');
+  const seccion = document.getElementById('seccionEfectivo');
+  const recibido = document.getElementById('montoRecibido');
+  const vuelto = document.getElementById('vuelto');
+  const boton = document.getElementById('btnCobrar');
+  const sesionAbierta = /*[[${sesionAbierta}]]*/ true;
+
+  function actualizar() {
+    const esEfectivo = metodo.options[metodo.selectedIndex].dataset.vuelto === 'true';
+    seccion.style.display = esEfectivo ? 'block' : 'none';
+    recibido.required = esEfectivo;
+    if (!esEfectivo) { boton.disabled = !sesionAbierta; return; }
+    const diff = (parseFloat(recibido.value) || 0) - total;
+    if (diff >= 0) {
+      vuelto.className = 'feedback ok';
+      vuelto.textContent = 'Vuelto: S/ ' + diff.toFixed(2);
+    } else {
+      vuelto.className = 'feedback mal';
+      vuelto.textContent = 'Faltan: S/ ' + Math.abs(diff).toFixed(2);
+    }
+    boton.disabled = !sesionAbierta || diff < 0;
+  }
+  metodo.addEventListener('change', actualizar);
+  recibido.addEventListener('input', actualizar);
+  actualizar();
+</script>
+</body>
+</html>
