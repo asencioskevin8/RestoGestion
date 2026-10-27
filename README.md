@@ -13,7 +13,7 @@ Proyecto universitario para el curso **Marcos de Desarrollo Web (100000SI57)** -
 
 ---
 
-## 👥 Reparto Modular del Equipo (APF3 - Semana 12)
+## 👥 Reparto Modular del Equipo 
 
 | Integrante | Rol / Módulo | Clases / Archivos Asignados | Sección del Informe |
 | :--- | :--- | :--- | :--- |
