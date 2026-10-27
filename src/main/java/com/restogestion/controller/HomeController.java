@@ -2,6 +2,7 @@ package com.restogestion.controller;
 
 import com.restogestion.repository.MesaRepository;
 import com.restogestion.repository.ProductoRepository;
+import com.restogestion.repository.PedidoRepository;
 import com.restogestion.repository.SesionCajaRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,7 +19,7 @@ public class HomeController {
     public HomeController(MesaRepository mesaRepository,
                           ProductoRepository productoRepository,
                           SesionCajaRepository sesionCajaRepository,
-                          PedidoRepository pedidoRepository)) {
+                          PedidoRepository pedidoRepository) {
         this.mesaRepository = mesaRepository;
         this.productoRepository = productoRepository;
         this.sesionCajaRepository = sesionCajaRepository;
