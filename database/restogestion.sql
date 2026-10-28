@@ -213,7 +213,9 @@ INSERT INTO roles (nombre, descripcion) VALUES
     ('MESERO', 'Control de mesas y toma de comandas en salón'),
     ('CLIENTE', 'Consulta del menú y pedidos por autoservicio');
 
--- Usuarios
+-- Usuarios 
+-- Contraseña temporal para todos los usuarios: 1234
+-- El valor se almacena como hash BCrypt en password_hash.
 INSERT INTO usuarios (id_rol, nombre_completo, username, password_hash, estado) VALUES
     (1, 'Kevin Asencios', 'admin', '$2a$10$ZzdAXCQQSa5SGgWtJFlI6eB.4oQcIYFF9/41k/gF4B3ws9pY0c.N2', 'ACTIVO'),
     (2, 'Brayan Uriarte', 'cajero', '$2a$10$ZzdAXCQQSa5SGgWtJFlI6eB.4oQcIYFF9/41k/gF4B3ws9pY0c.N2', 'ACTIVO'),
