@@ -4,7 +4,6 @@ import com.restogestion.entity.Mesa;
 import com.restogestion.entity.Pedido;
 import com.restogestion.entity.SesionCaja;
 import com.restogestion.repository.MesaRepository;
-import com.restogestion.repository.SesionCajaRepository;
 import com.restogestion.repository.PedidoRepository;
 import com.restogestion.service.CajaService;
 import org.springframework.stereotype.Controller;
@@ -24,14 +23,11 @@ public class CajaController {
 
     private final CajaService cajaService;
     private final MesaRepository mesaRepository;
-    private final SesionCajaRepository sesionCajaRepository;
     private final PedidoRepository pedidoRepository;
 
-    public CajaController(CajaService cajaService, MesaRepository mesaRepository,
-                          SesionCajaRepository sesionCajaRepository, PedidoRepository pedidoRepository) {
+    public CajaController(CajaService cajaService, MesaRepository mesaRepository, PedidoRepository pedidoRepository) {
         this.cajaService = cajaService;
         this.mesaRepository = mesaRepository;
-        this.sesionCajaRepository = sesionCajaRepository;
         this.pedidoRepository = pedidoRepository;
     }
 

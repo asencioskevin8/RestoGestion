@@ -159,13 +159,6 @@ public class CajaService {
             sesion.setSaldoFinalFisico(saldoFinalFisico);
             sesion.setEstado("CERRADA");
 
-            // Calcular ventas en efectivo
-            List<ComprobantePago> comprobantes = comprobantePagoRepository.findBySesionCajaIdSesion(sesion.getIdSesion());
-            BigDecimal efectivo = comprobantes.stream()
-                    .filter(c -> "EFECTIVO".equalsIgnoreCase(c.getMetodoPago().getNombreMetodo()))
-                    .map(ComprobantePago::getImporteTotal)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-
             BigDecimal descuadre = saldoCierre.subtract(esperado);
             sesion.setDescuadre(descuadre);
 

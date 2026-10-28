@@ -21,7 +21,6 @@ public class ApiController {
     private final ProductoRepository productoRepository;
     private final CategoriaRepository categoriaRepository;
     private final PedidoRepository pedidoRepository;
-    private final DetallePedidoRepository detallePedidoRepository;
     private final SesionCajaRepository sesionCajaRepository;
     private final ComprobantePagoRepository comprobantePagoRepository;
     private final MetodoPagoRepository metodoPagoRepository;
@@ -31,7 +30,6 @@ public class ApiController {
                          ProductoRepository productoRepository,
                          CategoriaRepository categoriaRepository,
                          PedidoRepository pedidoRepository,
-                         DetallePedidoRepository detallePedidoRepository,
                          SesionCajaRepository sesionCajaRepository,
                          ComprobantePagoRepository comprobantePagoRepository,
                          MetodoPagoRepository metodoPagoRepository,
@@ -40,7 +38,6 @@ public class ApiController {
         this.productoRepository = productoRepository;
         this.categoriaRepository = categoriaRepository;
         this.pedidoRepository = pedidoRepository;
-        this.detallePedidoRepository = detallePedidoRepository;
         this.sesionCajaRepository = sesionCajaRepository;
         this.comprobantePagoRepository = comprobantePagoRepository;
         this.metodoPagoRepository = metodoPagoRepository;
@@ -364,9 +361,11 @@ public class ApiController {
 
         for (ComprobantePago c : comprobantes) {
             String m = c.getMetodoPago().getNombreMetodo().toUpperCase();
-            if ("EFECTIVO".equals(m)) efectivo = efectivo.add(c.getImporteTotal());
-            else if ("TARJETA".equals(m)) tarjeta = tarjeta.add(c.getImporteTotal());
-            else billeteras = billeteras.add(c.getImporteTotal());
+            switch (m) {
+                case "EFECTIVO" -> efectivo = efectivo.add(c.getImporteTotal());
+                case "TARJETA" -> tarjeta = tarjeta.add(c.getImporteTotal());
+                default -> billeteras = billeteras.add(c.getImporteTotal());
+            }
         }
 
         Map<String, Object> res = new HashMap<>();

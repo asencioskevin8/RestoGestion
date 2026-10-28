@@ -2,7 +2,6 @@ package com.restogestion.service;
 
 import com.restogestion.entity.DetallePedido;
 import com.restogestion.entity.Pedido;
-import com.restogestion.repository.DetallePedidoRepository;
 import com.restogestion.repository.PedidoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,11 +12,9 @@ import java.util.List;
 public class CocinaService {
 
     private final PedidoRepository pedidoRepository;
-    private final DetallePedidoRepository detallePedidoRepository;
 
-    public CocinaService(PedidoRepository pedidoRepository, DetallePedidoRepository detallePedidoRepository) {
+    public CocinaService(PedidoRepository pedidoRepository) {
         this.pedidoRepository = pedidoRepository;
-        this.detallePedidoRepository = detallePedidoRepository;
     }
 
     public List<Pedido> obtenerComandasActivas() {

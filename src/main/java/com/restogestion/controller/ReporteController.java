@@ -1,7 +1,6 @@
 package com.restogestion.controller;
 
 import com.restogestion.entity.ComprobantePago;
-import com.restogestion.entity.SesionCaja;
 import com.restogestion.repository.ComprobantePagoRepository;
 import com.restogestion.repository.SesionCajaRepository;
 import org.springframework.stereotype.Controller;
