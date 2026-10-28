@@ -15,14 +15,14 @@ Proyecto universitario para el curso **Marcos de Desarrollo Web (100000SI57)** -
 
 ## 👥 Reparto Modular del Equipo 
 
-| Integrante | Rol / Módulo | 
-| :--- | :--- |
-| **Kevin Asencios** | **Líder de Base de Datos y Persistencia** | 
-| **Andriv Lavado** | **Salón y Mapa de Mesas** |
-| **Edilson Magallanes** | **Carta, Menú e Inventario**  | 
-| **Piero Paucar** | **Comandas Digitales**  |
-| **Jean Carlos Rojas** | **Monitor de Cocina (KDS)**  | 
-| **Brayan Uriarte** | **Facturación, Cobro y Caja** |
+| Integrante | 
+| :--- | 
+| **Kevin Asencios** | 
+| **Andriv Lavado** | 
+| **Edilson Magallanes** |
+| **Piero Paucar** | 
+| **Jean Carlos Rojas** | 
+| **Brayan Uriarte** | 
 
 ---
 
