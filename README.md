@@ -15,14 +15,14 @@ Proyecto universitario para el curso **Marcos de Desarrollo Web (100000SI57)** -
 
 ## 👥 Reparto Modular del Equipo 
 
-| Integrante | Rol / Módulo | Clases / Archivos Asignados | Sección del Informe |
-| :--- | :--- | :--- | :--- |
-| **Kevin Asencios** | **Líder de Base de Datos y Persistencia** | `database/restogestion.sql`, 10 Entidades `@Entity`, 10 `JpaRepository` | **Apartado 3.4** (Diccionario de datos y relaciones) |
-| **Andriv Lavado** | **Salón y Mapa de Mesas** (`RF-05`) | `MesaService.java`, `MesaController.java`, `templates/mesas/` | **Apartado 3.5** (Ficha de Salón) + 3.6.1 |
-| **Edilson Magallanes** | **Carta, Menú e Inventario** (`RF-02`, `RF-03`) | `ProductoService.java`, `ProductoController.java`, `templates/menu/` | **Apartado 3.5** (Ficha de Menú) + 3.6.1 |
-| **Piero Paucar** | **Comandas Digitales** (`RF-06`, `RF-07`, `RF-08`) | `PedidoService.java`, `PedidoController.java`, `templates/pedidos/` | **Apartado 3.5** (Ficha de Comanda) + 3.6.2 (Secuencia) |
-| **Jean Carlos Rojas** | **Monitor de Cocina (KDS)** (`RF-09`, `RF-10`) | `CocinaService.java`, `CocinaController.java`, `templates/cocina/` | **Apartado 3.5** (Ficha de Cocina) + 3.6.1 |
-| **Brayan Uriarte** | **Facturación, Cobro y Caja** (`RF-11`, `RF-12`, `RF-04`) | `CajaService.java`, `CajaController.java`, `templates/caja/` | **Apartado 3.5** (Ficha de Cobro/Arqueo) + 3.6.1 |
+| Integrante | Rol / Módulo | 
+| :--- | :--- |
+| **Kevin Asencios** | **Líder de Base de Datos y Persistencia** | 
+| **Andriv Lavado** | **Salón y Mapa de Mesas** |
+| **Edilson Magallanes** | **Carta, Menú e Inventario**  | 
+| **Piero Paucar** | **Comandas Digitales**  |
+| **Jean Carlos Rojas** | **Monitor de Cocina (KDS)**  | 
+| **Brayan Uriarte** | **Facturación, Cobro y Caja** |
 
 ---
 
