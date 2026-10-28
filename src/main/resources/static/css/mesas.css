@@ -42,17 +42,19 @@
 
 .mesa-datos { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 11px; }
 
-.mesa-acciones { margin-top: auto; padding-top: 4px; }
+.mesa-acciones { margin-top: auto; padding-top: 10px; }
+.mesa-acciones > div { display: grid; gap: 10px; }
 .mesa-acciones form { margin: 0; }
-.mesa-acciones .accion-fila { display: flex; gap: 6px; margin-top: 11px; }
+.mesa-acciones > div > a.button { width: 100%; margin: 0; }
+.mesa-acciones .accion-fila { display: flex; gap: 8px; margin-top: 0; }
 .accion-fila .button { margin-top: 0; }
 .accion-fila input[type=number] { width: 64px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 7px; font-size: 12px; }
 .accion-fila .grow { flex: 1; }
 .mesa-card .mesa-acciones .button { margin-top: 0; }
-.mesa-acciones .secundaria { margin-top: 6px; }
+.mesa-acciones .secundaria { margin-top: 0; }
 .nota-estado { margin-top: 11px; color: var(--muted); font-size: 11px; }
 
-.mesa-herramientas { display: flex; justify-content: flex-end; gap: 4px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+.mesa-herramientas { display: flex; justify-content: flex-end; gap: 7px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line); }
 .icon-button { display: inline-grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 1px solid var(--line); border-radius: 6px; color: var(--muted); background: white; cursor: pointer; text-decoration: none; font-size: 13px; }
 .icon-button:hover { color: var(--ink); border-color: #c4d4c9; }
 .icon-button.peligro:hover { color: var(--red); border-color: #ecc9c3; background: var(--red-soft); }

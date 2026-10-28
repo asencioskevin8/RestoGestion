@@ -10,7 +10,7 @@
 </head>
 <body>
   <header class="topbar">
-    <a th:href="@{/}" class="brand-inline">
+    <a th:href="@{/panel}" class="brand-inline">
       <span class="brand-mark"><i class="bi bi-shop"></i></span>
       <span>
         <span class="brand-name" style="display:block">RestoGestión</span>
@@ -19,8 +19,9 @@
     </a>
     <nav class="mesas-nav" aria-label="Navegación principal">
       <a th:href="@{/mesas}" class="active"><i class="bi bi-grid-3x3-gap me-1"></i> Salón y mesas</a>
-      <a th:href="@{/menu}"><i class="bi bi-box-seam me-1"></i> Carta e inventario</a>
-      <a th:href="@{/}"><i class="bi bi-house-door me-1"></i> Panel</a>
+      <a th:href="@{/mesas}"><i class="bi bi-receipt me-1"></i> Elegir mesa</a>
+      <a th:href="@{/panel}"><i class="bi bi-house-door me-1"></i> Panel</a>
+      <form th:action="@{/logout}" method="post" style="display:inline"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"><button class="button" type="submit"><i class="bi bi-box-arrow-right me-1"></i> Salir</button></form>
     </nav>
   </header>
 
@@ -35,6 +36,7 @@
     </div>
 
     <form th:action="@{/mesas/guardar}" th:object="${mesa}" method="post" class="simple-panel form-panel">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
       <input type="hidden" th:field="*{idMesa}">
 
       <div class="aviso error" th:if="${#fields.hasGlobalErrors()}" role="alert">

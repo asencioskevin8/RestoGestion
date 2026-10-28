@@ -9,6 +9,7 @@ import java.util.Optional;
 @Repository
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
     List<Pedido> findByEstadoPedido(String estadoPedido);
+    List<Pedido> findByEstadoPedidoIn(List<String> estadosPedido);
     List<Pedido> findByMesaIdMesaAndEstadoPedidoNot(Long idMesa, String estadoCancelado);
     Optional<Pedido> findFirstByMesaIdMesaAndEstadoPedidoInOrderByFechaHoraDesc(Long idMesa, List<String> estados);
 }

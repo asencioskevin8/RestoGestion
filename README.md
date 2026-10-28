@@ -33,6 +33,7 @@ Proyecto universitario para el curso **Marcos de Desarrollo Web (100000SI57)** -
 2. Abre y ejecuta el archivo:
    `database/restogestion.sql`
    *(Crea la base de datos `restogestion` con 10 tablas y seeders de prueba).*
+3. Si la base de datos ya existía, ejecuta una sola vez `database/migracion_login.sql` para actualizar las contraseñas de los usuarios de prueba sin recrear las tablas.
 
 ### 2. Configuración en `application.properties`
 Abre `src/main/resources/application.properties` y verifica la contraseña de tu MySQL:
@@ -49,6 +50,18 @@ spring.datasource.password=tu_contraseña
   mvn spring-boot:run
   ```
 * Abre tu navegador en: **`http://localhost:8080`**
+
+### 4. Acceso al sistema
+La aplicación solicita autenticación y restringe las vistas según el rol. Para las cuentas de prueba, la contraseña temporal de presentación es `1234`:
+
+| Usuario | Rol | Acceso inicial |
+| :--- | :--- | :--- |
+| `admin` | Administrador | Todas las vistas |
+| `cajero` | Cajero | Caja |
+| `cocinero` | Cocinero | Cocina |
+| `mesero1`, `mesero2` | Mesero | Mesas y pedidos |
+
+El administrador puede registrar y editar productos desde **Menú**. Los productos se guardan mediante JPA en la tabla `productos` de MySQL.
 
 ---
 

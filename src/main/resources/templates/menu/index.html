@@ -10,9 +10,11 @@
 <body class="bg-light">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="/"><i class="bi bi-cup-hot-fill me-2"></i>RestoGestión</a>
-            <div class="navbar-nav">
+            <a class="navbar-brand fw-bold" th:href="@{/panel}"><i class="bi bi-cup-hot-fill me-2"></i>RestoGestión</a>
+            <div class="navbar-nav align-items-center">
                 <a class="nav-link active" href="/menu">Carta e Inventario</a>
+                <a class="nav-link" th:href="@{/panel}">Panel</a>
+                <form th:action="@{/logout}" method="post" class="ms-2"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"><button class="btn btn-sm btn-outline-light" type="submit">Salir</button></form>
             </div>
         </div>
     </nav>
@@ -40,18 +42,21 @@
                 </thead>
                 <tbody>
                     <tr th:each="prod : ${productos}">
-                        <td th:text="${prod.id}">1</td>
-                        <td class="fw-semibold" th:text="${prod.nombre}">Ceviche Mixto</td>
-                        <td th:text="${#numbers.formatDecimal(prod.precio, 1, 'COMMA', 2, 'POINT')}">35.00</td>
-                        <td th:text="${prod.stock}">12</td>
+                        <td th:text="${prod.idProducto}">1</td>
+                        <td class="fw-semibold" th:text="${prod.nombreProducto}">Ceviche Mixto</td>
+                        <td th:text="${#numbers.formatDecimal(prod.precioUnitario, 1, 'COMMA', 2, 'POINT')}">35.00</td>
+                        <td th:text="${prod.stockActual}">12</td>
                         <td>
-                            <span th:if="${prod.stock > 5}" class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Disponible</span>
-                            <span th:if="${prod.stock <= 5 and prod.stock > 0}" class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle me-1"></i>Poco Stock</span>
-                            <span th:if="${prod.stock == 0}" class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Agotado</span>
+                            <span th:if="${prod.stockActual > prod.stockMinimo}" class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Disponible</span>
+                            <span th:if="${prod.stockActual <= prod.stockMinimo and prod.stockActual > 0}" class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle me-1"></i>Poco Stock</span>
+                            <span th:if="${prod.stockActual == 0}" class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Agotado</span>
                         </td>
                         <td class="text-center">
-                            <a th:href="@{/menu/editar/{id}(id=${prod.id})}" class="btn btn-sm btn-outline-warning me-1" title="Editar"><i class="bi bi-pencil"></i></a>
-                            <a th:href="@{/menu/eliminar/{id}(id=${prod.id})}" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que deseas eliminar este producto?')" title="Eliminar"><i class="bi bi-trash"></i></a>
+                            <a th:href="@{/menu/editar/{id}(id=${prod.idProducto})}" class="btn btn-sm btn-outline-warning me-1" title="Editar"><i class="bi bi-pencil"></i></a>
+                            <form th:action="@{/menu/eliminar/{id}(id=${prod.idProducto})}" method="post" class="d-inline" onsubmit="return confirm('¿Seguro que deseas eliminar este producto?')">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar"><i class="bi bi-trash"></i></button>
+                            </form>
                         </td>
                     </tr>
                     <tr th:if="${#lists.isEmpty(productos)}">

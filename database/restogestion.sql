@@ -1,8 +1,4 @@
--- ==========================================================
--- SCRIPT DE BASE DE DATOS: RESTOGESTIÓN
--- Sistema Integral de Gestión para Restaurantes
--- UTP - Marcos de Desarrollo Web (2026)
--- ==========================================================
+
 
 CREATE DATABASE IF NOT EXISTS restogestion
   CHARACTER SET utf8mb4
@@ -206,7 +202,7 @@ CREATE TABLE comprobantes_pago (
 ) ENGINE = InnoDB;
 
 -- ==========================================================
--- DATOS INICIALES REALISTAS (SEEDERS)
+-- DATOS INICIALES 
 -- ==========================================================
 
 -- Roles
@@ -219,11 +215,11 @@ INSERT INTO roles (nombre, descripcion) VALUES
 
 -- Usuarios
 INSERT INTO usuarios (id_rol, nombre_completo, username, password_hash, estado) VALUES
-    (1, 'Kevin Asencios', 'admin', '$2a$10$abcdefghijklmnopqrstuvwxyz123456', 'ACTIVO'),
-    (2, 'Brayan Uriarte', 'cajero', '$2a$10$abcdefghijklmnopqrstuvwxyz123456', 'ACTIVO'),
-    (3, 'Jean Carlos Rojas', 'cocinero', '$2a$10$abcdefghijklmnopqrstuvwxyz123456', 'ACTIVO'),
-    (4, 'Piero Paucar', 'mesero1', '$2a$10$abcdefghijklmnopqrstuvwxyz123456', 'ACTIVO'),
-    (4, 'Andriv Lavado', 'mesero2', '$2a$10$abcdefghijklmnopqrstuvwxyz123456', 'ACTIVO');
+    (1, 'Kevin Asencios', 'admin', '$2a$10$ZzdAXCQQSa5SGgWtJFlI6eB.4oQcIYFF9/41k/gF4B3ws9pY0c.N2', 'ACTIVO'),
+    (2, 'Brayan Uriarte', 'cajero', '$2a$10$ZzdAXCQQSa5SGgWtJFlI6eB.4oQcIYFF9/41k/gF4B3ws9pY0c.N2', 'ACTIVO'),
+    (3, 'Jean Carlos Rojas', 'cocinero', '$2a$10$ZzdAXCQQSa5SGgWtJFlI6eB.4oQcIYFF9/41k/gF4B3ws9pY0c.N2', 'ACTIVO'),
+    (4, 'Piero Paucar', 'mesero1', '$2a$10$ZzdAXCQQSa5SGgWtJFlI6eB.4oQcIYFF9/41k/gF4B3ws9pY0c.N2', 'ACTIVO'),
+    (4, 'Andriv Lavado', 'mesero2', '$2a$10$ZzdAXCQQSa5SGgWtJFlI6eB.4oQcIYFF9/41k/gF4B3ws9pY0c.N2', 'ACTIVO');
 
 -- Categorías
 INSERT INTO categorias (nombre_categoria, orden_menu) VALUES

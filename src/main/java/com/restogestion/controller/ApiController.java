@@ -3,6 +3,8 @@ package com.restogestion.controller;
 import com.restogestion.entity.*;
 import com.restogestion.repository.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -118,12 +120,18 @@ public class ApiController {
     @PostMapping("/pedidos")
     @Transactional
     public ResponseEntity<?> crearPedido(@RequestBody PedidoRequest req) {
+        if (req == null || req.numeroMesa == null || req.numeroMesa.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "La mesa es obligatoria"));
+        }
+        if (req.items == null || req.items.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "La comanda debe contener al menos un producto"));
+        }
         Mesa mesa = mesaRepository.findByNumeroMesa(req.numeroMesa).orElse(null);
         if (mesa == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "Mesa no encontrada: " + req.numeroMesa));
         }
 
-        Usuario mesero = usuarioRepository.findAll().stream().findFirst().orElse(null);
+        Usuario mesero = usuarioActual();
 
         Pedido pedido = new Pedido();
         pedido.setMesa(mesa);
@@ -135,11 +143,21 @@ public class ApiController {
         BigDecimal total = BigDecimal.ZERO;
 
         for (PedidoRequest.ItemRequest item : req.items) {
+            if (item == null || item.idProducto == null || item.cantidad == null
+                    || item.cantidad.compareTo(BigDecimal.ZERO) <= 0) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Cada producto debe tener una cantidad mayor a cero"));
+            }
             Producto prod = productoRepository.findById(item.idProducto).orElse(null);
-            if (prod == null) continue;
+            if (prod == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Producto no encontrado: " + item.idProducto));
+            }
+
+            if (!Boolean.TRUE.equals(prod.getDisponible())) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Producto no disponible: " + prod.getNombreProducto()));
+            }
 
             // Validar y descontar stock
-            if (prod.getControlaStock()) {
+            if (Boolean.TRUE.equals(prod.getControlaStock())) {
                 if (prod.getStockActual().compareTo(item.cantidad) < 0) {
                     return ResponseEntity.badRequest().body(Map.of("error", "Stock insuficiente para: " + prod.getNombreProducto()));
                 }
@@ -261,6 +279,9 @@ public class ApiController {
         if (pedido == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "No hay pedido activo para cobrar en la mesa " + req.numeroMesa));
         }
+        if (comprobantePagoRepository.findByPedidoIdPedido(pedido.getIdPedido()).isPresent()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "El pedido ya tiene un comprobante registrado"));
+        }
 
         SesionCaja sesion = sesionCajaRepository.findFirstByEstadoOrderByFechaAperturaDesc("ABIERTA")
                 .orElse(null);
@@ -268,8 +289,14 @@ public class ApiController {
             return ResponseEntity.badRequest().body(Map.of("error", "No hay una sesión de caja abierta"));
         }
 
+        if (req.metodoPago == null || req.metodoPago.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "El método de pago es obligatorio"));
+        }
         MetodoPago metodo = metodoPagoRepository.findByNombreMetodo(req.metodoPago.toUpperCase())
-                .orElseGet(() -> metodoPagoRepository.findAll().stream().findFirst().orElse(null));
+                .orElse(null);
+        if (metodo == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Método de pago no válido: " + req.metodoPago));
+        }
 
        BigDecimal total = pedido.getTotalCalculado();
 
@@ -279,17 +306,21 @@ public class ApiController {
         BigDecimal igv = total.subtract(subtotal);
 
         BigDecimal recibido = req.montoRecibido != null ? req.montoRecibido : total;
-        BigDecimal vuelto = recibido.compareTo(total) >= 0 ? recibido.subtract(total) : BigDecimal.ZERO;
+        if (recibido.compareTo(total) < 0) {
+            return ResponseEntity.badRequest().body(Map.of("error", "El monto recibido es menor al total del pedido"));
+        }
+        BigDecimal vuelto = recibido.subtract(total);
 
-        String serie = "FACTURA".equalsIgnoreCase(req.tipoComprobante) ? "F001" : "B001";
-        Integer ultimoNumero = comprobantePagoRepository.findUltimoNumeroPorSerie(serie, req.tipoComprobante);
+        String tipoComprobante = "FACTURA".equalsIgnoreCase(req.tipoComprobante) ? "FACTURA" : "BOLETA";
+        String serie = "FACTURA".equals(tipoComprobante) ? "F001" : "B001";
+        Integer ultimoNumero = comprobantePagoRepository.findUltimoNumeroPorSerie(serie, tipoComprobante);
         Integer nuevoNumero = ultimoNumero + 1;
 
         ComprobantePago comprobante = new ComprobantePago();
         comprobante.setPedido(pedido);
         comprobante.setSesionCaja(sesion);
         comprobante.setMetodoPago(metodo);
-        comprobante.setTipoComprobante(req.tipoComprobante);
+        comprobante.setTipoComprobante(tipoComprobante);
         comprobante.setSerie(serie);
         comprobante.setNumero(nuevoNumero);
         comprobante.setSubtotal(subtotal);
@@ -346,5 +377,14 @@ public class ApiController {
         res.put("billeteras", billeteras);
         res.put("montoInicial", sesion != null ? sesion.getMontoInicial() : BigDecimal.ZERO);
         return res;
+    }
+
+    private Usuario usuarioActual() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()
+                && !"anonymousUser".equals(authentication.getPrincipal())) {
+            return usuarioRepository.findByUsername(authentication.getName()).orElse(null);
+        }
+        return usuarioRepository.findAll().stream().findFirst().orElse(null);
     }
 }

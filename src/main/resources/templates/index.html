@@ -30,7 +30,7 @@
         <button class="nav-button" data-view="cliente"><span class="nav-icon"><i class="bi bi-person-badge"></i></span> Cliente</button>
       </nav>
       <div class="side-bottom">
-        <div class="side-status"><span class="online-dot"></span> Spring Boot + MySQL</div>
+        <div class="side-status"><span class="online-dot"></span> Sistema operativo</div>
         <div style="margin-top:8px">Universidad Tecnológica del Perú · 2026</div>
       </div>
     </aside>
@@ -48,6 +48,12 @@
               <div class="profile-role" id="profileRole">Mesero</div>
             </div>
           </div>
+          <form th:action="@{/logout}" method="post" style="margin:0;">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <button class="button" type="submit">Salir</button>
+          </form>
+          <a class="button" th:href="@{/usuarios}">Usuarios</a>
+          <a class="button" th:href="@{/reportes}">Reportes</a>
         </div>
       </header>
       <main id="main"></main>
@@ -158,7 +164,7 @@
       const inAccount = tables.filter(t => t.status === 'En cuenta').length;
       const totalRec = Number(cashSummary.totalRecaudado || 0);
 
-      return `${heading('Turno de servicio · En vivo', 'Resumen del salón', 'Control de ocupación y mesas sincronizado con MySQL.')}
+      return `${heading('Turno de servicio · En vivo', 'Resumen del salón', 'Consulta el estado actual de las mesas y la actividad del salón.')}
         <section class="metrics" aria-label="Resumen del turno">
           <article class="metric">
             <div>
@@ -196,7 +202,7 @@
         <section class="section">
           <div class="section-head">
             <h2>Estado de las mesas</h2>
-            <span class="section-note"><span class="online-dot" style="display:inline-block;margin-right:4px;"></span> Conectado a MySQL</span>
+            <span class="section-note"><span class="online-dot" style="display:inline-block;margin-right:4px;"></span> Estado actualizado</span>
           </div>
           <div class="table-grid">
             ${tables.map(t => `
@@ -297,7 +303,7 @@
                   <span>Total estimado</span>
                   <strong>${money(total)}</strong>
                 </div>
-                ${stockError ? '<p class="product-stock out">Stock insuficiente en MySQL. Ajusta la cantidad antes de enviar.</p>' : ''}
+                ${stockError ? '<p class="product-stock out">Stock insuficiente. Ajusta la cantidad antes de enviar.</p>' : ''}
                 <button class="button primary full" onclick="sendOrder()" ${stockError ? 'disabled' : ''}>
                   Enviar a cocina <span aria-hidden="true">→</span>
                 </button>
@@ -429,11 +435,14 @@
     // ----------------------------------------------------------
     function renderInventory() {
       const low = products.filter(p => p.stock < 5).length;
-      return `${heading('Control de productos', 'Inventario y Carta', 'Consulta el stock persistido en MySQL y ajusta cantidades.', `<span class="badge ${low ? 'gold' : 'green'}">${low} con stock bajo</span>`)}
+      return `${heading('Control de productos', 'Inventario y Carta', 'Consulta el stock y ajusta cantidades.', `<span class="badge ${low ? 'gold' : 'green'}">${low} con stock bajo</span>`)}
         <section class="panel">
           <div class="panel-head">
             <span class="panel-title">Catálogo de productos</span>
-            <span class="section-note">${products.length} platillos registrados</span>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span class="section-note">${products.length} platillos registrados</span>
+              <a class="button primary" href="/menu/nuevo"><i class="bi bi-plus-circle"></i> Agregar producto</a>
+            </div>
           </div>
           <div style="overflow:auto">
             <table class="inventory-table">
@@ -442,7 +451,7 @@
                   <th>Producto</th>
                   <th>Categoría</th>
                   <th>Precio</th>
-                  <th>Disponibilidad en MySQL</th>
+                  <th>Disponibilidad</th>
                   <th>Estado</th>
                 </tr>
               </thead>
@@ -561,7 +570,7 @@
             <h2>Actividad y Estado del Turno</h2>
             <button class="button primary" onclick="openArqueoModal()"><i class="bi bi-calculator"></i> Realizar Arqueo / Cierre de Caja</button>
           </div>
-          <p style="margin-top:10px;">Las ventas se asocian a la sesión de caja abierta en MySQL. Al cerrar turno se calcula el descuadre con el saldo físico contado.</p>
+          <p style="margin-top:10px;">Las ventas se asocian a la sesión de caja abierta. Al cerrar turno se calcula el descuadre con el saldo físico contado.</p>
           <div class="table-info">
             <span>Monto inicial en caja: <strong>${money(cashSummary.montoInicial || 200)}</strong></span>
             <span>Total en gaveta esperado: <strong>${money(Number(cashSummary.montoInicial || 200) + efec)}</strong></span>
@@ -711,7 +720,7 @@
 
             <div style="display:flex;gap:10px;margin-top:18px;">
               <button class="button" style="flex:1;" onclick="closeModal('arqueoModal')">Cancelar</button>
-              <button class="button primary" style="flex:1;" onclick="closeModal('arqueoModal'); notify('Cierre de turno registrado con éxito en MySQL.');">Guardar Cierre</button>
+              <button class="button primary" style="flex:1;" onclick="closeModal('arqueoModal'); notify('Cierre de turno registrado con éxito.');">Guardar Cierre</button>
             </div>
           </div>
         </div>
@@ -849,7 +858,7 @@
           body: JSON.stringify({ delta })
         });
         await syncBackendData();
-        notify('Stock actualizado en MySQL.');
+        notify('Stock actualizado.');
       } catch (err) {
         const p = products.find(x => x.id === idProducto);
         if (p) p.stock = Math.max(0, p.stock + delta);

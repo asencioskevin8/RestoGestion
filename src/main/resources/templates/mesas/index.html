@@ -10,7 +10,7 @@
 </head>
 <body>
   <header class="topbar">
-    <a th:href="@{/}" class="brand-inline">
+    <a th:href="@{/panel}" class="brand-inline">
       <span class="brand-mark"><i class="bi bi-shop"></i></span>
       <span>
         <span class="brand-name" style="display:block">RestoGestión</span>
@@ -19,8 +19,9 @@
     </a>
     <nav class="mesas-nav" aria-label="Navegación principal">
       <a th:href="@{/mesas}" class="active"><i class="bi bi-grid-3x3-gap me-1"></i> Salón y mesas</a>
-      <a th:href="@{/menu}"><i class="bi bi-box-seam me-1"></i> Carta e inventario</a>
-      <a th:href="@{/}"><i class="bi bi-house-door me-1"></i> Panel</a>
+      <a th:href="@{/mesas}"><i class="bi bi-receipt me-1"></i> Elegir mesa</a>
+      <a th:href="@{/panel}"><i class="bi bi-house-door me-1"></i> Panel</a>
+      <form th:action="@{/logout}" method="post" style="display:inline"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"><button class="button" type="submit"><i class="bi bi-box-arrow-right me-1"></i> Salir</button></form>
     </nav>
   </header>
 
@@ -79,7 +80,7 @@
     <section class="section">
       <div class="section-head">
         <h2>Estado de las mesas</h2>
-        <span class="section-note"><span class="online-dot" style="display:inline-block;margin-right:4px;"></span> Sincronizado con MySQL</span>
+        <span class="section-note"><span class="online-dot" style="display:inline-block;margin-right:4px;"></span> Estado actualizado</span>
       </div>
 
       <nav class="filtros" aria-label="Filtrar por estado">
@@ -121,11 +122,13 @@
             <!-- LIBRE: abrir mesa o reservar -->
             <div th:case="'LIBRE'">
               <form th:action="@{/mesas/{id}/abrir(id=${m.idMesa})}" method="post" class="accion-fila">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <input type="hidden" name="filtro" th:value="${filtro}">
                 <input type="number" name="comensales" min="1" th:max="${m.capacidad}" value="1" required aria-label="Comensales">
                 <button type="submit" class="button primary grow"><i class="bi bi-door-open"></i> Abrir mesa</button>
               </form>
               <form th:action="@{/mesas/{id}/estado(id=${m.idMesa})}" method="post" class="secundaria">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <input type="hidden" name="filtro" th:value="${filtro}">
                 <input type="hidden" name="estado" value="RESERVADA">
                 <button type="submit" class="button"><i class="bi bi-bookmark"></i> Reservar</button>
@@ -135,11 +138,13 @@
             <!-- RESERVADA: recibir clientes o liberar -->
             <div th:case="'RESERVADA'">
               <form th:action="@{/mesas/{id}/abrir(id=${m.idMesa})}" method="post" class="accion-fila">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <input type="hidden" name="filtro" th:value="${filtro}">
                 <input type="number" name="comensales" min="1" th:max="${m.capacidad}" value="1" required aria-label="Comensales">
                 <button type="submit" class="button primary grow"><i class="bi bi-door-open"></i> Recibir clientes</button>
               </form>
               <form th:action="@{/mesas/{id}/estado(id=${m.idMesa})}" method="post" class="secundaria">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <input type="hidden" name="filtro" th:value="${filtro}">
                 <input type="hidden" name="estado" value="LIBRE">
                 <button type="submit" class="button"><i class="bi bi-x-circle"></i> Cancelar reserva</button>
@@ -149,21 +154,25 @@
             <!-- OCUPADA: ajustar comensales o pedir cuenta -->
             <div th:case="'OCUPADA'">
               <form th:action="@{/mesas/{id}/comensales(id=${m.idMesa})}" method="post" class="accion-fila">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <input type="hidden" name="filtro" th:value="${filtro}">
                 <input type="number" name="comensales" min="1" th:max="${m.capacidad}" th:value="${m.comensalesActuales}" required aria-label="Comensales">
                 <button type="submit" class="button grow"><i class="bi bi-people"></i> Actualizar</button>
               </form>
               <form th:action="@{/mesas/{id}/estado(id=${m.idMesa})}" method="post" class="secundaria">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <input type="hidden" name="filtro" th:value="${filtro}">
                 <input type="hidden" name="estado" value="CUENTA">
                 <button type="submit" class="button primary"><i class="bi bi-receipt"></i> Pedir cuenta</button>
               </form>
+              <a class="button primary" th:href="@{/pedidos/nuevo(numeroMesa=${m.numeroMesa})}"><i class="bi bi-receipt me-1"></i> Tomar pedido</a>
             </div>
 
             <!-- CUENTA: pendiente de cobro en Caja -->
             <div th:case="'CUENTA'">
               <div class="nota-estado"><i class="bi bi-wallet2"></i> Cuenta lista: pendiente de cobro en Caja.</div>
               <form th:action="@{/mesas/{id}/estado(id=${m.idMesa})}" method="post" class="secundaria">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <input type="hidden" name="filtro" th:value="${filtro}">
                 <input type="hidden" name="estado" value="OCUPADA">
                 <button type="submit" class="button"><i class="bi bi-arrow-counterclockwise"></i> Reabrir mesa</button>
@@ -173,6 +182,7 @@
             <!-- LIMPIEZA: dejar disponible -->
             <div th:case="'LIMPIEZA'">
               <form th:action="@{/mesas/{id}/estado(id=${m.idMesa})}" method="post" class="accion-fila">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <input type="hidden" name="filtro" th:value="${filtro}">
                 <input type="hidden" name="estado" value="LIBRE">
                 <button type="submit" class="button primary grow"><i class="bi bi-check2-circle"></i> Marcar libre</button>
@@ -186,6 +196,7 @@
             </a>
             <form th:if="${m.estado == 'LIBRE'}" th:action="@{/mesas/eliminar/{id}(id=${m.idMesa})}" method="post"
                   onsubmit="return confirm('¿Seguro que deseas eliminar esta mesa?')">
+              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
               <input type="hidden" name="filtro" th:value="${filtro}">
               <button type="submit" class="icon-button peligro" title="Eliminar mesa" aria-label="Eliminar mesa">
                 <i class="bi bi-trash"></i>
@@ -202,4 +213,5 @@
     </section>
   </main>
 </body>
+<script>setTimeout(() => window.location.reload(), 10000);</script>
 </html>

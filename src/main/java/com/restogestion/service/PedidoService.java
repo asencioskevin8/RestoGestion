@@ -10,6 +10,8 @@ import com.restogestion.repository.PedidoRepository;
 import com.restogestion.repository.ProductoRepository;
 import com.restogestion.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -40,10 +42,13 @@ public class PedidoService {
 
     @Transactional
     public Pedido registrarComanda(String numeroMesa, String origen, String observaciones, List<DetalleItemDTO> items) {
+        if (items == null || items.isEmpty()) {
+            throw new IllegalArgumentException("La comanda debe contener al menos un producto");
+        }
         Mesa mesa = mesaRepository.findByNumeroMesa(numeroMesa)
                 .orElseThrow(() -> new IllegalArgumentException("Mesa no encontrada: " + numeroMesa));
 
-        Usuario mesero = usuarioRepository.findAll().stream().findFirst().orElse(null);
+        Usuario mesero = usuarioActual();
 
         Pedido pedido = new Pedido();
         pedido.setMesa(mesa);
@@ -55,10 +60,18 @@ public class PedidoService {
         BigDecimal total = BigDecimal.ZERO;
 
         for (DetalleItemDTO item : items) {
+            if (item == null || item.idProducto == null || item.cantidad == null
+                    || item.cantidad.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("Cada detalle debe tener producto y una cantidad mayor a cero");
+            }
             Producto prod = productoRepository.findById(item.idProducto)
                     .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado con ID: " + item.idProducto));
 
-            if (prod.getControlaStock()) {
+            if (!Boolean.TRUE.equals(prod.getDisponible())) {
+                throw new IllegalStateException("Producto no disponible: " + prod.getNombreProducto());
+            }
+
+            if (Boolean.TRUE.equals(prod.getControlaStock())) {
                 if (prod.getStockActual().compareTo(item.cantidad) < 0) {
                     throw new IllegalStateException("Stock insuficiente para: " + prod.getNombreProducto());
                 }
@@ -91,6 +104,15 @@ public class PedidoService {
         mesaRepository.save(mesa);
 
         return pedido;
+    }
+
+    private Usuario usuarioActual() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()
+                && !"anonymousUser".equals(authentication.getPrincipal())) {
+            return usuarioRepository.findByUsername(authentication.getName()).orElse(null);
+        }
+        return usuarioRepository.findAll().stream().findFirst().orElse(null);
     }
 
     public static class DetalleItemDTO {
