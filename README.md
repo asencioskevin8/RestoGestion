@@ -8,7 +8,7 @@ Proyecto universitario para el curso **Marcos de Desarrollo Web (100000SI57)** -
 * **Lenguaje:** Java 21 LTS
 * **Framework Back-end:** Spring Boot 3.5.6 (Spring Web, Spring Data JPA, Hibernate, Bean Validation)
 * **Base de Datos:** MySQL 8.x (InnoDB, utf8mb4)
-* **Front-end:** HTML5, CSS3 modular, Bootstrap Icons 1.11.3 (iconografía vectorial SVG profesional)
+* **Front-end:** HTML5, CSS3 modular, Bootstrap Icons 1.11.3
 * **Gestor de dependencias:** Maven
 
 ---
