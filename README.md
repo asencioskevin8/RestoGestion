@@ -67,6 +67,28 @@ Para esta presentación, todos los usuarios utilizan la contraseña temporal `12
 
 El administrador puede registrar y editar productos desde **Menú**. Los productos se guardan mediante JPA en la tabla `productos` de MySQL.
 
+### 5. Autenticación JWT para la API
+
+La API REST también permite autenticación mediante JWT. Primero solicita un token:
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "1234"
+}
+```
+
+La respuesta contiene un token Bearer. Utilízalo en las siguientes solicitudes:
+
+```http
+Authorization: Bearer <token>
+```
+
+El token incluye el usuario, sus roles y una vigencia de una hora. El login web con Thymeleaf mantiene la autenticación por sesión para no afectar las vistas existentes.
+
 ---
 
 ## 📁 Estructura del Código

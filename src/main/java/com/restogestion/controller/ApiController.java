@@ -382,8 +382,9 @@ public class ApiController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()
                 && !"anonymousUser".equals(authentication.getPrincipal())) {
-            return usuarioRepository.findByUsername(authentication.getName()).orElse(null);
+            return usuarioRepository.findByUsername(authentication.getName())
+                    .orElseThrow(() -> new IllegalStateException("Usuario autenticado no encontrado"));
         }
-        return usuarioRepository.findAll().stream().findFirst().orElse(null);
+        throw new IllegalStateException("La operación requiere autenticación");
     }
 }

@@ -14,6 +14,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import com.restogestion.security.JwtAuthenticationFilter;
 
 @Configuration
 @EnableMethodSecurity
@@ -56,6 +61,38 @@ public class SecurityConfig {
     }
 
     @Bean
+    AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
+    }
+
+    @Bean
+    @Order(1)
+    SecurityFilterChain apiSecurityFilterChain(HttpSecurity http,
+                                                 JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
+        http
+                .securityMatcher("/api/**")
+                .csrf(csrf -> csrf.disable())
+                // Permite reutilizar la sesión del frontend Thymeleaf y también autenticar por Bearer JWT.
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/mesas/**").hasAnyRole("ADMINISTRADOR", "MESERO", "COCINERO")
+                        .requestMatchers("/api/mesas/**", "/api/pedidos/**").hasAnyRole("ADMINISTRADOR", "MESERO")
+                        .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/categorias/**").hasAnyRole("ADMINISTRADOR", "MESERO", "CLIENTE")
+                        .requestMatchers("/api/productos/**", "/api/categorias/**").hasRole("ADMINISTRADOR")
+                        .requestMatchers("/api/cocina/**").hasAnyRole("ADMINISTRADOR", "COCINERO")
+                        .requestMatchers("/api/caja/**").hasAnyRole("ADMINISTRADOR", "CAJERO")
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(jwtAuthenticationFilter,
+                        org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
+                .httpBasic(basic -> basic.disable());
+
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
     SecurityFilterChain securityFilterChain(HttpSecurity http,
                                              AuthenticationSuccessHandler successHandler) throws Exception {
         http
@@ -68,10 +105,6 @@ public class SecurityConfig {
                         .requestMatchers("/mesas/**", "/pedidos/**").hasAnyRole("ADMINISTRADOR", "MESERO")
                         .requestMatchers("/cocina/**").hasAnyRole("ADMINISTRADOR", "COCINERO")
                         .requestMatchers("/caja/**").hasAnyRole("ADMINISTRADOR", "CAJERO")
-                        .requestMatchers("/api/mesas/**", "/api/pedidos/**").hasAnyRole("ADMINISTRADOR", "MESERO")
-                        .requestMatchers("/api/productos/**", "/api/categorias/**").hasAnyRole("ADMINISTRADOR", "MESERO")
-                        .requestMatchers("/api/cocina/**").hasAnyRole("ADMINISTRADOR", "COCINERO")
-                        .requestMatchers("/api/caja/**").hasAnyRole("ADMINISTRADOR", "CAJERO")
                         .requestMatchers("/").hasRole("ADMINISTRADOR")
                         .requestMatchers("/panel").authenticated()
                         .anyRequest().authenticated()
@@ -86,7 +119,7 @@ public class SecurityConfig {
                         .logoutSuccessUrl("/login?logout")
                         .permitAll()
                 )
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"));
+                ;
 
         return http.build();
     }
