@@ -1,5 +1,0 @@
-{
-    "java.configuration.updateBuildConfiguration": "interactive",
-    "maven.compiler.release": 21,
-    "java.compile.nullAnalysis.mode": "disabled"
-}
