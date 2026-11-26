@@ -76,6 +76,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers("/api/usuarios/**", "/api/roles/**").hasRole("ADMINISTRADOR")
                         .requestMatchers(HttpMethod.GET, "/api/mesas/**").hasAnyRole("ADMINISTRADOR", "MESERO", "COCINERO")
                         .requestMatchers("/api/mesas/**", "/api/pedidos/**").hasAnyRole("ADMINISTRADOR", "MESERO")
                         .requestMatchers(HttpMethod.GET, "/api/productos/**", "/api/categorias/**").hasAnyRole("ADMINISTRADOR", "MESERO", "CLIENTE")

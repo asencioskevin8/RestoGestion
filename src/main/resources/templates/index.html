@@ -86,6 +86,7 @@
     let billingTable = null;
     let reportData = { total: 0, efectivo: 0, tarjeta: 0, billeteras: 0, cobros: [] };
     let users = [];
+    let usersLoadError = '';
     let roles = [];
     let reportMethod = 'TODOS';
 
@@ -178,7 +179,12 @@
         }
 
         if (resReportes.ok) reportData = await resReportes.json();
-        if (resUsuarios.ok) users = await resUsuarios.json();
+        if (resUsuarios.ok) {
+          users = await resUsuarios.json();
+          usersLoadError = '';
+        } else {
+          usersLoadError = 'No se pudieron cargar los usuarios activos. Vuelve a iniciar sesión como administrador o pulsa Actualizar.';
+        }
         if (resRoles.ok) roles = await resRoles.json();
 
         renderCurrentView();
@@ -678,13 +684,28 @@
     // VISTA 7: USUARIOS Y ROLES
     // ----------------------------------------------------------
     function renderUsers() {
-      return `${heading('Gestión · Accesos', 'Usuarios y roles', 'Administra quién puede acceder al sistema y con qué nivel.', `<button class="button" onclick="syncBackendData(); notify('Usuarios actualizados.');"><i class="bi bi-arrow-clockwise"></i> Actualizar</button>`)}
+      return `${heading('Gestión · Accesos', 'Usuarios y roles', 'Cuentas habilitadas para acceder al sistema y sus roles.', `<button class="button" onclick="refreshUsers()"><i class="bi bi-arrow-clockwise"></i> Actualizar</button>`)}
+        ${usersLoadError ? `<div class="aviso error" role="alert">${escapeHtml(usersLoadError)}</div>` : ''}
         <section class="panel users-panel">
-          <div class="panel-head"><div><div class="panel-title">Equipo registrado</div><div class="section-note">${users.length} usuarios encontrados</div></div><button class="button primary" onclick="openUserModal()"><i class="bi bi-person-plus"></i> Nuevo usuario</button></div>
+          <div class="panel-head"><div><div class="panel-title">Usuarios activos</div><div class="section-note">${usersLoadError ? 'Consulta pendiente de actualizar' : `${users.length} cuentas activas · estado ACTIVO`}</div></div><button class="button primary" onclick="openUserModal()"><i class="bi bi-person-plus"></i> Nuevo usuario</button></div>
           <div class="panel-body"><div class="table-scroll"><table class="inventory-table users-table"><thead><tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Estado</th><th>Alcance</th></tr></thead><tbody>
-            ${users.length ? users.map(user => `<tr><td><strong>${escapeHtml(user.nombre)}</strong></td><td>${escapeHtml(user.username)}</td><td>${escapeHtml(user.rol)}</td><td><span class="badge ${user.estado === 'ACTIVO' ? 'green' : 'red'}">${escapeHtml(user.estado || 'SIN ESTADO')}</span></td><td><button class="button table-action" onclick="notify('Los permisos se gestionan desde el rol asignado.')">Ver permisos del rol</button></td></tr>`).join('') : '<tr><td colspan="5" class="empty">No hay usuarios registrados.</td></tr>'}
+            ${users.length ? users.map(user => `<tr><td><strong>${escapeHtml(user.nombre)}</strong></td><td>${escapeHtml(user.username)}</td><td>${escapeHtml(user.rol)}</td><td><span class="badge ${user.estado === 'ACTIVO' ? 'green' : 'red'}">${escapeHtml(user.estado || 'SIN ESTADO')}</span></td><td><button class="button table-action" onclick="notify('Los permisos se gestionan desde el rol asignado.')">Ver permisos del rol</button></td></tr>`).join('') : `<tr><td colspan="5" class="empty">${usersLoadError ? 'Listado no disponible.' : 'No hay usuarios activos registrados.'}</td></tr>`}
           </tbody></table></div></div>
         </section>`;
+    }
+
+    async function refreshUsers() {
+      try {
+        const response = await fetch('/api/usuarios');
+        if (!response.ok) throw new Error('No se pudieron cargar los usuarios activos.');
+        users = await response.json();
+        usersLoadError = '';
+        notify('Usuarios activos actualizados.');
+      } catch (error) {
+        usersLoadError = error.message || 'No se pudo conectar con el servidor.';
+        notify(usersLoadError);
+      }
+      renderCurrentView();
     }
 
     function formatDate(value) {
