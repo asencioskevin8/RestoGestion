@@ -125,6 +125,9 @@ public class MesaService {
     @Transactional
     public Mesa guardar(Mesa datos) {
         String numero = datos.getNumeroMesa() == null ? "" : datos.getNumeroMesa().trim().toUpperCase();
+        if (numero.isBlank() || numero.length() > 10) {
+            throw new IllegalArgumentException("El número de mesa debe tener entre 1 y 10 caracteres");
+        }
         if (datos.getCapacidad() == null || datos.getCapacidad() < 1 || datos.getCapacidad() > CAPACIDAD_MAXIMA) {
             throw new IllegalArgumentException("La capacidad debe estar entre 1 y " + CAPACIDAD_MAXIMA + " comensales");
         }

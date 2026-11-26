@@ -208,10 +208,20 @@
 
       <div class="empty" th:if="${#lists.isEmpty(mesas)}">
         <i class="bi bi-inbox" style="font-size:30px;opacity:.5;display:block;margin-bottom:6px;"></i>
-        No hay mesas en este estado.
+        <p th:text="${resumen.totalMesas() == 0} ? 'Registra las mesas de la cevichería para comenzar a atender.' : 'No hay mesas en este estado.'">No hay mesas en este estado.</p>
+        <a th:if="${esAdministrador and resumen.totalMesas() == 0}" th:href="@{/mesas/nueva}" class="button primary">Registrar primera mesa</a>
       </div>
     </section>
   </main>
 </body>
-<script>setTimeout(() => window.location.reload(), 10000);</script>
+<script>
+  // Evita perder la cantidad que el mesero está ingresando.
+  let formularioModificado = false;
+  document.addEventListener('input', () => { formularioModificado = true; });
+  setInterval(() => {
+    if (!formularioModificado && !document.hidden && !document.activeElement?.matches('input, select, textarea')) {
+      window.location.reload();
+    }
+  }, 10000);
+</script>
 </html>

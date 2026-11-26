@@ -2,6 +2,7 @@ package com.restogestion.controller;
 
 import com.restogestion.entity.*;
 import com.restogestion.repository.*;
+import com.restogestion.service.MesaService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,6 +19,7 @@ import java.util.*;
 public class ApiController {
 
     private final MesaRepository mesaRepository;
+    private final MesaService mesaService;
     private final ProductoRepository productoRepository;
     private final CategoriaRepository categoriaRepository;
     private final PedidoRepository pedidoRepository;
@@ -27,6 +29,7 @@ public class ApiController {
     private final UsuarioRepository usuarioRepository;
 
     public ApiController(MesaRepository mesaRepository,
+                         MesaService mesaService,
                          ProductoRepository productoRepository,
                          CategoriaRepository categoriaRepository,
                          PedidoRepository pedidoRepository,
@@ -35,6 +38,7 @@ public class ApiController {
                          MetodoPagoRepository metodoPagoRepository,
                          UsuarioRepository usuarioRepository) {
         this.mesaRepository = mesaRepository;
+        this.mesaService = mesaService;
         this.productoRepository = productoRepository;
         this.categoriaRepository = categoriaRepository;
         this.pedidoRepository = pedidoRepository;
@@ -54,20 +58,14 @@ public class ApiController {
 
     @PutMapping("/mesas/{id}/estado")
     public ResponseEntity<?> updateEstadoMesa(@PathVariable Long id, @RequestBody Map<String, String> body) {
-        return mesaRepository.findById(id).map(mesa -> {
-            String nuevoEstado = body.get("estado");
-            if (nuevoEstado != null) {
-                mesa.setEstado(nuevoEstado);
-                if ("LIBRE".equalsIgnoreCase(nuevoEstado)) {
-                    mesa.setComensalesActuales(0);
-                    mesa.setFechaApertura(null);
-                } else if ("OCUPADA".equalsIgnoreCase(nuevoEstado) && mesa.getFechaApertura() == null) {
-                    mesa.setFechaApertura(LocalDateTime.now());
-                }
-                mesaRepository.save(mesa);
-            }
-            return ResponseEntity.ok(mesa);
-        }).orElse(ResponseEntity.notFound().build());
+        if (mesaService.obtenerPorId(id).isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        try {
+            return ResponseEntity.ok(mesaService.transicionarEstado(id, body.get("estado")));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     // ----------------------------------------------------------

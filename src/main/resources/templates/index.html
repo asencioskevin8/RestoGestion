@@ -291,7 +291,7 @@
       const inAccount = tables.filter(t => t.status === 'En cuenta').length;
       const totalRec = Number(cashSummary.totalRecaudado || 0);
 
-      return `${heading('Turno de servicio · En vivo', 'Resumen del salón', 'Consulta el estado actual de las mesas y la actividad del salón.')}
+      return `${heading('Turno de servicio · En vivo', 'Resumen del salón', 'Consulta el estado actual de las mesas y la actividad del salón.', '<a class="button primary" href="/mesas"><i class="bi bi-grid"></i> Gestionar mesas</a>')}
         <section class="metrics" aria-label="Resumen del turno">
           <article class="metric">
             <div>
@@ -332,6 +332,7 @@
             <span class="section-note"><span class="online-dot" style="display:inline-block;margin-right:4px;"></span> Estado actualizado</span>
           </div>
           <div class="table-grid">
+            ${tables.length === 0 ? '<div class="empty"><p>Aún no hay mesas registradas.</p><a class="button primary" href="/mesas/nueva">Registrar primera mesa</a></div>' : ''}
             ${tables.map(t => `
               <article class="table-card">
                 <div class="table-card-top">
@@ -352,6 +353,8 @@
                   ? `<button class="button primary" onclick="openPaymentModal('${t.no}')"><i class="bi bi-credit-card"></i> Cobrar cuenta →</button>`
                   : t.status === 'Limpieza'
                   ? `<button class="button" onclick="cleanTable('${t.no}')"><i class="bi bi-check2-circle"></i> Marcar libre</button>`
+                  : t.status === 'Libre' || t.status === 'Reservada'
+                  ? `<a class="button" href="/mesas">${t.status === 'Reservada' ? 'Recibir clientes' : 'Abrir mesa'} <span aria-hidden="true">→</span></a>`
                   : `<button class="button" onclick="openComanda('${t.no}')">${t.status === 'Ocupada' ? 'Ver comanda' : 'Abrir mesa'} <span aria-hidden="true">→</span></button>`
                 }
               </article>
@@ -960,12 +963,19 @@
       const t = tables.find(x => x.no === tableNo);
       if (!t) return;
       try {
-        await fetch(`/api/mesas/${t.id}/estado`, {
+        const response = await fetch(`/api/mesas/${t.id}/estado`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ estado: 'LIBRE' })
         });
-      } catch(e){}
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error || 'No se pudo actualizar la mesa.');
+        }
+      } catch(e) {
+        notify(e.message || 'No se pudo conectar con el servidor.');
+        return;
+      }
       notify(`Mesa ${tableNo} desinfectada y disponible.`);
       await syncBackendData();
     }
