@@ -411,6 +411,52 @@ public class ApiController {
         return res;
     }
 
+    @GetMapping("/reportes")
+    @Transactional(readOnly = true)
+    public Map<String, Object> getReportes() {
+        List<ComprobantePago> comprobantes = comprobantePagoRepository.findAll();
+        BigDecimal total = BigDecimal.ZERO;
+        BigDecimal efectivo = BigDecimal.ZERO;
+        BigDecimal tarjeta = BigDecimal.ZERO;
+        BigDecimal billeteras = BigDecimal.ZERO;
+        List<Map<String, Object>> cobros = new ArrayList<>();
+
+        for (ComprobantePago comprobante : comprobantes) {
+            BigDecimal importe = comprobante.getImporteTotal() == null
+                    ? BigDecimal.ZERO : comprobante.getImporteTotal();
+            String metodo = comprobante.getMetodoPago() == null
+                    ? "SIN MÉTODO" : comprobante.getMetodoPago().getNombreMetodo();
+
+            total = total.add(importe);
+            switch (metodo.toUpperCase()) {
+                case "EFECTIVO" -> efectivo = efectivo.add(importe);
+                case "TARJETA" -> tarjeta = tarjeta.add(importe);
+                default -> billeteras = billeteras.add(importe);
+            }
+
+            Map<String, Object> fila = new HashMap<>();
+            fila.put("fecha", comprobante.getFechaEmision());
+            fila.put("comprobante", comprobante.getSerie() + "-" + String.format("%06d", comprobante.getNumero()));
+            fila.put("pedido", comprobante.getPedido() == null ? null : comprobante.getPedido().getIdPedido());
+            fila.put("metodo", metodo);
+            fila.put("total", importe);
+            cobros.add(fila);
+        }
+
+        cobros.sort(Comparator.comparing(
+                fila -> (LocalDateTime) fila.get("fecha"),
+                Comparator.nullsLast(Comparator.reverseOrder())
+        ));
+
+        Map<String, Object> respuesta = new HashMap<>();
+        respuesta.put("total", total);
+        respuesta.put("efectivo", efectivo);
+        respuesta.put("tarjeta", tarjeta);
+        respuesta.put("billeteras", billeteras);
+        respuesta.put("cobros", cobros);
+        return respuesta;
+    }
+
     @PostMapping("/caja/cierre")
     @Transactional
     public ResponseEntity<?> cerrarCaja(@RequestBody CierreCajaRequest req) {
