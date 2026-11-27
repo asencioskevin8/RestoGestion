@@ -26,7 +26,7 @@ public class UsuarioApiController {
 
     // La respuesta omite deliberadamente contraseñas y hashes.
     public record UsuarioVista(Long id, String nombre, String username, String rol, String estado) {}
-    public record RolVista(Long id, String nombre) {}
+    public record RolVista(Long id, String nombre, String descripcion, List<String> permisos) {}
 
     @GetMapping("/usuarios")
     @Transactional(readOnly = true)
@@ -43,8 +43,18 @@ public class UsuarioApiController {
     public List<RolVista> rolesActivos() {
         return roles.findAll().stream()
                 .filter(r -> Boolean.TRUE.equals(r.getActivo()))
-                .map(r -> new RolVista(r.getIdRol(), r.getNombre()))
+                .map(r -> new RolVista(r.getIdRol(), r.getNombre(), r.getDescripcion(), permisosPara(r.getNombre())))
                 .sorted(Comparator.comparing(RolVista::nombre))
                 .toList();
+    }
+
+    private List<String> permisosPara(String nombre) {
+        return switch (nombre == null ? "" : nombre.toUpperCase()) {
+            case "ADMINISTRADOR" -> List.of("Dashboard", "Mesas y pedidos", "Cocina", "Caja y cobros", "Inventario", "Usuarios y roles", "Reportes");
+            case "CAJERO" -> List.of("Mesas y pedidos", "Caja y cobros");
+            case "MESERO" -> List.of("Mesas y pedidos");
+            case "COCINERO" -> List.of("Cocina");
+            default -> List.of();
+        };
     }
 }

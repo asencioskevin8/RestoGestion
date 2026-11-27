@@ -2,6 +2,7 @@ package com.restogestion.controller;
 
 import com.restogestion.entity.*;
 import com.restogestion.repository.*;
+import com.restogestion.service.CajaService;
 import com.restogestion.service.MesaService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -20,6 +21,7 @@ public class ApiController {
 
     private final MesaRepository mesaRepository;
     private final MesaService mesaService;
+    private final CajaService cajaService;
     private final ProductoRepository productoRepository;
     private final CategoriaRepository categoriaRepository;
     private final PedidoRepository pedidoRepository;
@@ -30,6 +32,7 @@ public class ApiController {
 
     public ApiController(MesaRepository mesaRepository,
                          MesaService mesaService,
+                         CajaService cajaService,
                          ProductoRepository productoRepository,
                          CategoriaRepository categoriaRepository,
                          PedidoRepository pedidoRepository,
@@ -39,6 +42,7 @@ public class ApiController {
                          UsuarioRepository usuarioRepository) {
         this.mesaRepository = mesaRepository;
         this.mesaService = mesaService;
+        this.cajaService = cajaService;
         this.productoRepository = productoRepository;
         this.categoriaRepository = categoriaRepository;
         this.pedidoRepository = pedidoRepository;
@@ -262,6 +266,11 @@ public class ApiController {
         public BigDecimal montoRecibido;
     }
 
+    public static class CierreCajaRequest {
+        public Long idSesion;
+        public BigDecimal saldoFinalFisico;
+    }
+
     @PostMapping("/caja/cobrar")
     @Transactional
     public ResponseEntity<?> procesarCobro(@RequestBody CobroRequest req) {
@@ -398,7 +407,26 @@ public class ApiController {
         res.put("tarjeta", tarjeta);
         res.put("billeteras", billeteras);
         res.put("montoInicial", sesion != null ? sesion.getMontoInicial() : BigDecimal.ZERO);
+        res.put("idSesion", sesion != null ? sesion.getIdSesion() : null);
         return res;
+    }
+
+    @PostMapping("/caja/cierre")
+    @Transactional
+    public ResponseEntity<?> cerrarCaja(@RequestBody CierreCajaRequest req) {
+        if (req == null || req.idSesion == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "La sesión de caja es obligatoria"));
+        }
+        try {
+            SesionCaja sesion = cajaService.cerrarCaja(req.idSesion, req.saldoFinalFisico);
+            return ResponseEntity.ok(Map.of(
+                    "idSesion", sesion.getIdSesion(),
+                    "estado", sesion.getEstado(),
+                    "descuadre", sesion.getDescuadre()
+            ));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     private Usuario usuarioActual() {

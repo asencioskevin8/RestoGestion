@@ -73,7 +73,7 @@
     let products = [];
     let tables = [];
     let tickets = [];
-    let cashSummary = { totalRecaudado: 0, transacciones: 0, efectivo: 0, tarjeta: 0, billeteras: 0, montoInicial: 200 };
+    let cashSummary = { totalRecaudado: 0, transacciones: 0, efectivo: 0, tarjeta: 0, billeteras: 0, montoInicial: 200, idSesion: null };
 
     const order = new Map();
     const customerCart = new Map();
@@ -689,7 +689,7 @@
         <section class="panel users-panel">
           <div class="panel-head"><div><div class="panel-title">Usuarios activos</div><div class="section-note">${usersLoadError ? 'Consulta pendiente de actualizar' : `${users.length} cuentas activas · estado ACTIVO`}</div></div><button class="button primary" onclick="openUserModal()"><i class="bi bi-person-plus"></i> Nuevo usuario</button></div>
           <div class="panel-body"><div class="table-scroll"><table class="inventory-table users-table"><thead><tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Estado</th><th>Alcance</th></tr></thead><tbody>
-            ${users.length ? users.map(user => `<tr><td><strong>${escapeHtml(user.nombre)}</strong></td><td>${escapeHtml(user.username)}</td><td>${escapeHtml(user.rol)}</td><td><span class="badge ${user.estado === 'ACTIVO' ? 'green' : 'red'}">${escapeHtml(user.estado || 'SIN ESTADO')}</span></td><td><button class="button table-action" onclick="notify('Los permisos se gestionan desde el rol asignado.')">Ver permisos del rol</button></td></tr>`).join('') : `<tr><td colspan="5" class="empty">${usersLoadError ? 'Listado no disponible.' : 'No hay usuarios activos registrados.'}</td></tr>`}
+            ${users.length ? users.map(user => `<tr><td><strong>${escapeHtml(user.nombre)}</strong></td><td>${escapeHtml(user.username)}</td><td>${escapeHtml(user.rol)}</td><td><span class="badge ${user.estado === 'ACTIVO' ? 'green' : 'red'}">${escapeHtml(user.estado || 'SIN ESTADO')}</span></td><td><button class="button table-action" onclick="openRolePermissions('${encodeURIComponent(user.rol || '')}')">Ver permisos del rol</button></td></tr>`).join('') : `<tr><td colspan="5" class="empty">${usersLoadError ? 'Listado no disponible.' : 'No hay usuarios activos registrados.'}</td></tr>`}
           </tbody></table></div></div>
         </section>`;
     }
@@ -738,6 +738,18 @@
     }
 
     function closeUserModal() { document.getElementById('userModal')?.remove(); }
+
+    function openRolePermissions(encodedRole) {
+      const roleName = decodeURIComponent(encodedRole);
+      const role = roles.find(item => item.nombre === roleName);
+      const permissions = role?.permisos || [];
+      const description = role?.descripcion || 'Permisos definidos por el rol asignado.';
+      const modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.id = 'rolePermissionsModal';
+      modal.innerHTML = `<div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="rolePermissionsTitle"><div class="modal-title-row"><h2 id="rolePermissionsTitle">Permisos · ${escapeHtml(roleName)}</h2><button class="button" type="button" onclick="closeModal('rolePermissionsModal')" aria-label="Cerrar"><i class="bi bi-x-lg"></i></button></div><p class="section-note">${escapeHtml(description)}</p><ul class="permission-list">${permissions.length ? permissions.map(permission => `<li><i class="bi bi-check-circle-fill"></i>${escapeHtml(permission)}</li>`).join('') : '<li>Sin permisos definidos.</li>'}</ul></div>`;
+      document.body.append(modal);
+    }
 
     async function createUser(event) {
       event.preventDefault();
@@ -988,7 +1000,7 @@
 
             <div style="display:flex;gap:10px;margin-top:18px;">
               <button class="button" style="flex:1;" onclick="closeModal('arqueoModal')">Cancelar</button>
-              <button class="button primary" style="flex:1;" onclick="closeModal('arqueoModal'); notify('Cierre de turno registrado con éxito.');">Guardar Cierre</button>
+              <button class="button primary" style="flex:1;" onclick="submitCashClose()">Guardar Cierre</button>
             </div>
           </div>
         </div>
@@ -1009,6 +1021,33 @@
       } else {
         feedback.style.color = 'var(--red)';
         feedback.textContent = `Faltante de dinero: -S/ ${Math.abs(descuadre).toFixed(2)}`;
+      }
+    }
+
+    async function submitCashClose() {
+      const idSesion = cashSummary.idSesion;
+      const saldoFinalFisico = parseFloat(document.getElementById('conteoFisico')?.value);
+      if (!idSesion) {
+        notify('No hay una sesión de caja abierta para cerrar.');
+        return;
+      }
+      if (!Number.isFinite(saldoFinalFisico) || saldoFinalFisico < 0) {
+        notify('Ingresa un saldo físico válido para cerrar la caja.');
+        return;
+      }
+      try {
+        const response = await fetch('/api/caja/cierre', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idSesion, saldoFinalFisico })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'No se pudo cerrar la caja.');
+        closeModal('arqueoModal');
+        await syncBackendData();
+        notify(`Caja cerrada correctamente. Descuadre: ${money(result.descuadre)}.`);
+      } catch (error) {
+        notify(error.message || 'No se pudo cerrar la caja.');
       }
     }
 
@@ -1071,9 +1110,7 @@
           notify(err.error || 'Error al registrar pedido.');
         }
       } catch (err) {
-        order.clear();
-        setView('cocina');
-        notify('Comanda registrada localmente.');
+        notify('No se pudo registrar la comanda. Verifica la conexión e inténtalo nuevamente.');
       }
     }
 
@@ -1098,6 +1135,10 @@
           })
         });
 
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'No se pudo registrar el pedido.');
+        }
         customerTicket = {
           table: customerTable,
           state: 'Pendiente',
@@ -1109,35 +1150,36 @@
         notify('Pedido recibido en cocina. Puedes seguir su estado aquí.');
         await syncBackendData();
       } catch (err) {
-        customerCart.clear();
-        setView('cliente');
-        notify('Pedido confirmado.');
+        notify(err.message || 'No se pudo registrar el pedido.');
       }
     }
 
     async function advanceTicketBackend(idPedido) {
       try {
-        await fetch(`/api/cocina/pedidos/${idPedido}/avanzar`, { method: 'PUT' });
+        const response = await fetch(`/api/cocina/pedidos/${idPedido}/avanzar`, { method: 'PUT' });
+        if (!response.ok) throw new Error('No se pudo actualizar el estado del pedido.');
         notify('Estado del pedido actualizado en cocina.');
         await syncBackendData();
       } catch (err) {
-        notify('Estado avanzado.');
+        notify(err.message || 'No se pudo actualizar el estado del pedido.');
       }
     }
 
     async function adjustStockBackend(idProducto, delta) {
       try {
-        await fetch(`/api/productos/${idProducto}/stock`, {
+        const response = await fetch(`/api/productos/${idProducto}/stock`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ delta })
         });
+        if (!response.ok) {
+          const result = await response.json();
+          throw new Error(result.error || 'No se pudo actualizar el stock.');
+        }
         await syncBackendData();
         notify('Stock actualizado.');
       } catch (err) {
-        const p = products.find(x => x.id === idProducto);
-        if (p) p.stock = Math.max(0, p.stock + delta);
-        renderCurrentView();
+        notify(err.message || 'No se pudo actualizar el stock.');
       }
     }
 
