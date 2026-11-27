@@ -89,6 +89,8 @@
     let usersLoadError = '';
     let roles = [];
     let reportMethod = 'TODOS';
+    let syncInProgress = false;
+    let realtimeTimer;
 
     const main = document.getElementById('main');
     const money = n => `S/ ${Number(n || 0).toFixed(2)}`;
@@ -125,6 +127,8 @@
     // CARGA DE DATOS ASÍNCRONA DESDE SPRING BOOT
     // ----------------------------------------------------------
     async function syncBackendData() {
+      if (syncInProgress) return false;
+      syncInProgress = true;
       try {
         const [resMesas, resProds, resTickets, resCaja, resReportes, resUsuarios, resRoles] = await Promise.all([
           fetch('/api/mesas'),
@@ -193,7 +197,16 @@
         console.warn('Conectando a Spring Boot...', err);
         renderCurrentView();
         return false;
+      } finally {
+        syncInProgress = false;
       }
+    }
+
+    function startRealtimeSync() {
+      clearInterval(realtimeTimer);
+      realtimeTimer = setInterval(() => {
+        if (!document.hidden) syncBackendData();
+      }, 5000);
     }
 
     async function refreshDashboard() {
@@ -1293,6 +1306,7 @@
 
     applyTheme(localStorage.getItem('restogestion-theme') || 'light');
     syncBackendData();
+    startRealtimeSync();
     setView('dashboard');
   </script>
 </body>
