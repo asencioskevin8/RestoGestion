@@ -360,6 +360,7 @@ public class ApiController {
         mesaRepository.save(mesa);
 
         return ResponseEntity.ok(Map.of(
+            "idComprobante", comprobante.getIdComprobante(),
             "comprobante", serie + "-" + String.format("%06d", nuevoNumero),
             "total", total,
             "vuelto", vuelto,

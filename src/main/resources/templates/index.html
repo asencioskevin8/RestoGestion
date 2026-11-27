@@ -845,9 +845,22 @@
             <div class="modal-field">
               <label>Tipo de Comprobante</label>
               <select id="docType">
-                <option value="BOLETA">Boleta de Venta Electrónica (B001)</option>
+                <option value="BOLETA_SIMPLE">Boleta simple (B001)</option>
+                <option value="BOLETA_DNI">Boleta con DNI (B001)</option>
                 <option value="FACTURA">Factura Electrónica (F001)</option>
               </select>
+            </div>
+
+            <div id="clientDataSection" class="modal-field" style="display:none;">
+              <label>Tipo de documento</label>
+              <select id="clientDocType">
+                <option value="DNI">DNI</option>
+                <option value="RUC">RUC</option>
+              </select>
+              <label style="margin-top:8px;">Número de documento</label>
+              <input type="text" id="clientDocNumber" maxlength="11" placeholder="Número de documento">
+              <label style="margin-top:8px;">Nombre o razón social</label>
+              <input type="text" id="clientName" placeholder="Nombre del cliente">
             </div>
 
             <div class="modal-field">
@@ -874,6 +887,15 @@
         </div>
       `;
       document.body.insertAdjacentHTML('beforeend', modalHtml);
+      document.getElementById('docType').addEventListener('change', toggleClientData);
+    }
+
+    function toggleClientData() {
+      const type = document.getElementById('docType').value;
+      const section = document.getElementById('clientDataSection');
+      const documentType = document.getElementById('clientDocType');
+      section.style.display = type === 'BOLETA_SIMPLE' ? 'none' : 'block';
+      documentType.value = type === 'FACTURA' ? 'RUC' : 'DNI';
     }
 
     function calcChange(total) {
@@ -898,6 +920,14 @@
       const docType = document.getElementById('docType').value;
       const payMethod = document.getElementById('payMethod').value;
       const cashReceived = parseFloat(document.getElementById('cashReceived')?.value) || total;
+      const clientDocType = document.getElementById('clientDocType')?.value || null;
+      const clientDocNumber = document.getElementById('clientDocNumber')?.value.trim() || null;
+      const clientName = document.getElementById('clientName')?.value.trim() || null;
+
+      if (docType !== 'BOLETA_SIMPLE' && (!clientDocNumber || !clientName)) {
+        notify('Completa el documento y nombre del cliente para emitir el comprobante.');
+        return;
+      }
 
       try {
         const res = await fetch('/api/caja/cobrar', {
@@ -907,20 +937,22 @@
             numeroMesa: billingTable.no,
             tipoComprobante: docType,
             metodoPago: payMethod,
-            montoRecibido: cashReceived
+            montoRecibido: cashReceived,
+            tipoDocumentoCliente: clientDocType,
+            numeroDocumentoCliente: clientDocNumber,
+            nombreCliente: clientName
           })
         });
 
         const data = await res.json();
+        if (!res.ok) {
+          notify(data.error || 'No se pudo registrar el cobro.');
+          return;
+        }
         closeModal('paymentModal');
-        notify(data.mensaje || `Comprobante emitido. Mesa ${billingTable.no} liberada a limpieza.`);
-        await syncBackendData();
+        window.location.href = `/caja/comprobante/${data.idComprobante}`;
       } catch (err) {
-        billingTable.status = 'Limpieza';
-        billingTable.kind = 'gold';
-        closeModal('paymentModal');
-        notify(`Cobro registrado para Mesa ${billingTable.no}.`);
-        renderCurrentView();
+        notify('No se pudo conectar con el servidor para registrar el cobro.');
       }
     }
 
