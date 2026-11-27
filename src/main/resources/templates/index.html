@@ -188,9 +188,19 @@
         if (resRoles.ok) roles = await resRoles.json();
 
         renderCurrentView();
+        return [resMesas, resProds, resTickets, resCaja, resReportes, resUsuarios, resRoles].every(response => response.ok);
       } catch (err) {
         console.warn('Conectando a Spring Boot...', err);
+        renderCurrentView();
+        return false;
       }
+    }
+
+    async function refreshDashboard() {
+      const actualizado = await syncBackendData();
+      notify(actualizado
+        ? 'Dashboard actualizado correctamente.'
+        : 'No se pudieron actualizar todos los datos. Revisa la conexión.');
     }
 
     const available = product => product.stock - (order.get(product.id) || 0);
@@ -213,7 +223,7 @@
       const occupancy = totalTables ? Math.round((occupied / totalTables) * 100) : 0;
       const topProducts = [...products].sort((a, b) => b.stock - a.stock).slice(0, 5);
 
-      return `${heading('Panel administrativo · En vivo', 'Resumen general', 'Una vista rápida para tomar decisiones sobre la operación del restaurante.', `<button class="button" onclick="syncBackendData(); notify('Dashboard actualizado.');"><i class="bi bi-arrow-clockwise"></i> Actualizar datos</button>`)}
+      return `${heading('Panel administrativo · En vivo', 'Resumen general', 'Una vista rápida para tomar decisiones sobre la operación del restaurante.', `<button class="button" onclick="refreshDashboard()"><i class="bi bi-arrow-clockwise"></i> Actualizar datos</button>`)}
         <section class="dashboard-kpis" aria-label="Indicadores principales">
           <article class="admin-kpi admin-kpi-primary">
             <div class="admin-kpi-icon"><i class="bi bi-cash-stack"></i></div>
