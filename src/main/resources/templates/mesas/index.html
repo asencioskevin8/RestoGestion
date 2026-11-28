@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" th:href="@{/css/restogestion.css}" href="/css/restogestion.css">
   <link rel="stylesheet" th:href="@{/css/mesas.css}" href="/css/mesas.css">
+  <script src="/js/realtime-page.js" defer></script>
 </head>
 <body>
   <header class="topbar">
@@ -214,14 +215,4 @@
     </section>
   </main>
 </body>
-<script>
-  // Evita perder la cantidad que el mesero está ingresando.
-  let formularioModificado = false;
-  document.addEventListener('input', () => { formularioModificado = true; });
-  setInterval(() => {
-    if (!formularioModificado && !document.hidden && !document.activeElement?.matches('input, select, textarea')) {
-      window.location.reload();
-    }
-  }, 10000);
-</script>
 </html>
