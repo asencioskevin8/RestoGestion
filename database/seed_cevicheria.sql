@@ -2,6 +2,8 @@
 -- Script seguro para ejecutar sobre una base existente: no elimina tablas
 -- y evita duplicar mesas o productos por su nombre.
 
+SET NAMES utf8mb4;
+
 -- Las mesas M01-M08 ya forman parte del seed principal. Estas inserciones
 -- permiten completar las que falten sin modificar las que ya tienen pedidos.
 INSERT INTO mesas (numero_mesa, capacidad, estado, comensales_actuales)
